@@ -1,0 +1,1 @@
+void InitHooks_CrashFixHacks ();
