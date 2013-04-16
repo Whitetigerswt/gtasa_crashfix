@@ -272,6 +272,9 @@ static void WINAPI Load() {
 		MemPut < BYTE > ( 0x0706AB0, 0xC3 );
 		
 	}
+	
+	// Black roads fix
+	MemPut < BYTE > ( 0x884984, 0 );
 
 	InitHooks_CrashFixHacks ( );
 }
