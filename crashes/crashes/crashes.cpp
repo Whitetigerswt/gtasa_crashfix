@@ -842,6 +842,44 @@ void _declspec(naked) HOOK_CrashFix_Misc26 ()
     }
 }
 
+////////////////////////////////////////////////////////////////////////
+// Handle CObject::ProcessGarageDoorBehaviour object with no dummy
+#define HOOKPOS_CrashFix_Misc28                             0x44A4FD
+#define HOOKSIZE_CrashFix_Misc28                            6
+DWORD RETURN_CrashFix_Misc28 =                              0x44A503;
+DWORD RETURN_CrashFix_Misc28B =                             0x44A650;
+void _declspec(naked) HOOK_CrashFix_Misc28 ()
+{
+    _asm
+    {
+        // Execute replaced code
+        mov     eax, [esi+170h]
+    }
+
+#if TEST_CRASH_FIXES
+    SIMULATE_ERROR_BEGIN( 50 )
+        _asm
+        {
+            mov     eax, 0
+        }
+    SIMULATE_ERROR_END
+#endif
+
+    _asm
+    {
+        // Check if dummy pointer is zero
+        test    eax, eax
+        jne     cont
+
+        // Skip much code
+        jmp     RETURN_CrashFix_Misc28B
+
+cont:
+        // Continue standard path
+        jmp     RETURN_CrashFix_Misc28
+    }
+}
+
 void OnMY_Rtl_fopen_Post( FILE* fh, DWORD calledFrom, const char* szFilename, const char* szMode )
 {
     // Check for file open error
@@ -1079,6 +1117,7 @@ void InitHooks_CrashFixHacks ()
     EZHookInstall ( CrashFix_Misc25 );
     EZHookInstall ( CrashFix_Misc26 );
 	EZHookInstall ( CrashFix_Misc27 );
+	EZHookInstall ( CrashFix_Misc28 );
 	EZHookInstall ( CClumpModelInfo_GetFrameFromId );
 	EZHookInstall ( Rtl_fopen );
 }
