@@ -157,10 +157,6 @@ static void WINAPI Load() {
 		// Stop CVehicle::UpdateClumpAlpha from calling CVisibilityPlugins::SetClumpAlpha
 		MemSet ( (void*)0x6D29CB, 0x90, 5 );
 
-		// Disable CVehicle::DoDriveByShootings
-		MemSet ( (void*)0x741FD0, 0x90, 3 );
-		MemPut < BYTE > ( 0x741FD0, 0xC3 );
-
 		// END 2
 
 		// Disable CTaskSimplePlayerOnFoot::PlayIdleAnimations (ret 4)
