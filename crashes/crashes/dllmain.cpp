@@ -2,14 +2,18 @@
 
 #include <Windows.h>
 #include "crashes.h"
-#pragma warning(disable: 4244)
+//#pragma warning(disable: 4244)
 #include "CVector.h"
 #include "StdInc.h"
 #include "memory.h"
 #include "log.h"
+#include "gammaramp.h"
+#include <iostream>
+#include <fstream>
 
 CVector vecCenterOfWorld;
 
+void toggleCursor(bool bToggle);
 static void WINAPI Load();
 
 BOOL APIENTRY DllMain( HMODULE hModule,
@@ -25,6 +29,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 			return FALSE; 
 		}
 		break;
+	case DLL_PROCESS_DETACH: 
+		CGammaRamp GammaRamp;
+		GammaRamp.SetBrightness(NULL, 128);
+		break;
 	}
 	return TRUE;
 }
@@ -33,9 +41,11 @@ static void WINAPI Load() {
 	DWORD oldProt;
 	VirtualProtect((LPVOID)0x401000, 0x4A3000, PAGE_EXECUTE_READWRITE, &oldProt);
 
+	
 	while(*(int*)0xB6F5F0 == 0) { 
 		Sleep(100);
 	}
+	
 
 	if(GetModuleHandle("samp.dll") != NULL) {
 	
@@ -268,10 +278,95 @@ static void WINAPI Load() {
 		MemPut < BYTE > ( 0x0706AB0, 0xC3 );
 		
 	}
-	
+
 	// Black roads fix
+	
 	MemPut < BYTE > ( 0x884984, 0 );
 
-	InitHooks_CrashFixHacks ( );
-}
+	CGammaRamp GammaRamp;
 
+	InitHooks_CrashFixHacks ( );
+
+	ifstream ifile("crashes.cfg");
+	string type = "";
+	int enabled = NULL;
+
+	int brightness = NULL;
+	int mousefix = NULL;
+	if (ifile) {
+		while(ifile >> type >> enabled) {
+			if(type.compare("brightness") == 0) {
+				brightness = enabled;
+			} else if(type.compare("mousefix") == 0) {
+				mousefix = enabled;
+			}
+		}
+	} else {
+		ofstream ofile("crashes.cfg");
+		ofile << "brightness -1" << endl;
+		ofile << "mousefix 1" << endl;
+		ofile.close();
+
+		brightness = -1;
+		mousefix = 1;
+
+		ofstream readfile("crashes_readme.txt");
+		readfile << "brightness - the brightness setting can adjust your brightness at a much higher and lower rate than the regular ingame brightness, thats why it was added." << endl;
+		readfile << "if it's set to -1, it will use your ingame brightness bar to adjust your brightness, only change it from -1 if setting to the max brightness ingame is not bright enough, or you want to fine tune it more than the ingame setting can provide" << endl;
+		readfile << "this also fixes brightness not working in Windows 8" << endl << endl;
+
+		readfile << "mousefix - this setting fixes a windows 8 only problem of sometimes after an alt tab being able to see the mouse cursor over GTA:SA, disable if you're not using windows 8" << endl;
+		readfile.close();
+	}
+	
+	bool laststate = false;
+	while(true) {
+		TCHAR wintitle[50];
+		ZeroMemory(wintitle, sizeof(wintitle));
+
+		HWND hwnd = *(HWND*)0xC97C1C;
+		HWND ActiveWin = GetForegroundWindow();  // Gets a handle to the window..
+
+ 		char WindowText[50];
+		GetWindowText(ActiveWin, WindowText, sizeof(WindowText));
+		GetWindowText(hwnd, wintitle, sizeof(wintitle));
+		if((!strcmp(wintitle, WindowText) || ((!strcmp(wintitle, "GTA: San Andreas") && !strcmp(WindowText, "GTA:SA:MP")) || !strcmp(WindowText, "GTA: San Andreas") && !strcmp(wintitle, "GTA:SA:MP"))) && strlen(wintitle) > 0 && strlen(WindowText) > 0) {
+			int newbright = 64;
+
+			if(brightness == -1) {
+				int currentbrightness = *(int*)0x0BA6784;
+				int bars = (currentbrightness-9) / 24;
+
+				newbright += 12 * bars;
+			} else {
+				newbright = brightness;
+			}
+
+			GammaRamp.SetBrightness(NULL, newbright);
+
+			if(mousefix && laststate) {
+
+				// F6
+				keybd_event(0x75, 0, NULL, 0);
+				keybd_event(0x75, 0, KEYEVENTF_KEYUP, 0);
+				Sleep(50);
+
+				// ESC
+				keybd_event(0x1B, 0, NULL, 0);
+				keybd_event(0x1B, 0, KEYEVENTF_KEYUP, 0);
+
+				// we should think of a better solution then opening chat to hide mouse.
+				laststate = false;
+			}
+
+		} else {
+			GammaRamp.SetBrightness(NULL, 128);
+			if(mousefix && !laststate) {
+				laststate = true;
+			}
+			continue;
+		}
+
+		Sleep(5);
+	}
+}
