@@ -8,12 +8,12 @@
 #include "memory.h"
 #include "log.h"
 #include "gammaramp.h"
+#include "patcher.h"
 #include <iostream>
 #include <fstream>
 
 CVector vecCenterOfWorld;
 
-void toggleCursor(bool bToggle);
 static void WINAPI Load();
 
 BOOL APIENTRY DllMain( HMODULE hModule,
@@ -37,15 +37,24 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	return TRUE;
 }
 
+void SetHeatHazeEnabled ( bool bEnabled )
+{
+    if ( bEnabled )
+        MemPut < BYTE > ( 0x701780, 0x83 );
+    else
+        MemPut < BYTE > ( 0x701780, 0xC3 );
+}
+
 static void WINAPI Load() {
 	DWORD oldProt;
 	VirtualProtect((LPVOID)0x401000, 0x4A3000, PAGE_EXECUTE_READWRITE, &oldProt);
 
+	patcher_install(&patch_DisableLoadingScreen);
+	patcher_install(&patch_EnableResolutions);
 	
 	while(*(int*)0xB6F5F0 == 0) { 
 		Sleep(100);
 	}
-	
 
 	if(GetModuleHandle("samp.dll") != NULL) {
 	
@@ -184,6 +193,12 @@ static void WINAPI Load() {
 		// Remove this check so that no bullets are ignored.
 		MemPut < BYTE > ( 0x73FDF9, 0xEB );
 
+		// Satchel crash fix
+		// C89110: satchel (bomb) positions pointer?
+		// C891A8+4: satchel (model) positions pointer? gets set to NULL on player death, causing an access violation
+		// C891A8+12: satchel (model) disappear time (in SystemTime format). 738F99 clears the satchel when VAR_SystemTime is larger.
+		MemSet ( (LPVOID)0x738F3A, 0x90, 83 );
+
 		// Avoid GTA setting vehicle first color to white after changing the paintjob
 		MemSet ( (void *)0x6D65C5, 0x90, 11 );
 
@@ -276,6 +291,30 @@ static void WINAPI Load() {
 		MemPut < BYTE > ( 0x0449D10, 0xC3 );
 
 		MemPut < BYTE > ( 0x0706AB0, 0xC3 );
+
+		// HACK to prevent RealTimeShadowManager crash
+		// 00542483     EB 0B          JMP SHORT gta_sa_u.00542490
+		MemPut < BYTE > ( 0x542483, 0xEB );
+
+		MemPut < BYTE > ( 0x5E1E72, 0xE9 );
+		MemPut < BYTE > ( 0x5E1E73, 0xB9 );
+		MemPut < BYTE > ( 0x5E1E74, 0x00 );
+		MemPut < BYTE > ( 0x5E1E77, 0x90 );
+
+		// Allow turning on vehicle lights even if the engine is off
+		MemSet ( (void *)0x6E1DBC, 0x90, 8 );
+
+		// Fix vehicle back lights both using light state 3 (SA bug)
+		MemPut < BYTE > ( 0x6E1D4F, 2 );
+
+		// Disable setting players on fire when they're riding burning bmx's (see #4573)
+		MemPut < BYTE > ( 0x53A982, 0xEB );
+
+		MemSet ( (void *)0x590D7C, 0x90, 5 );
+		MemSet ( (void *)0x590DB3, 0x90, 5 );
+		MemCpy ( (void *)0x590D9F, "\xC3\x90\x90\x90\x90", 5 );
+
+		MemPut < int > ( 0x54F3A1, 1800 );
 		
 	}
 
@@ -299,12 +338,18 @@ static void WINAPI Load() {
 				brightness = enabled;
 			} else if(type.compare("mousefix") == 0) {
 				mousefix = enabled;
+			} else if(type.compare("shadows") == 0) {
+				setVolumetricShadows(enabled == 1 ? true : false);
+			} else if(type.compare("heathaze") == 0) {
+				SetHeatHazeEnabled(enabled == 1 ? true : false);
 			}
 		}
 	} else {
 		ofstream ofile("crashes.cfg");
 		ofile << "brightness -1" << endl;
 		ofile << "mousefix 1" << endl;
+		ofile << "shadows 0" << endl;
+		ofile << "heathaze 0" << endl;
 		ofile.close();
 
 		brightness = -1;
@@ -316,11 +361,14 @@ static void WINAPI Load() {
 		readfile << "this also fixes brightness not working in Windows 8" << endl << endl;
 
 		readfile << "mousefix - this setting fixes a windows 8 only problem of sometimes after an alt tab being able to see the mouse cursor over GTA:SA, disable if you're not using windows 8" << endl;
+		readfile << "shadows - enable or disables volumetric shadows, AKA the shitty shadows that lag even the best of PC's. run your game on very high FX quality without those shadows that looked ugly, and lagged your game anyway!" << endl;
+		readfile << "heathaze - enable or disable heat haze." << endl;
 		readfile.close();
 	}
 	
 	bool laststate = false;
 	while(true) {
+
 		TCHAR wintitle[50];
 		ZeroMemory(wintitle, sizeof(wintitle));
 
@@ -370,3 +418,9 @@ static void WINAPI Load() {
 		Sleep(5);
 	}
 }
+
+/*
+
+
+
+*/
