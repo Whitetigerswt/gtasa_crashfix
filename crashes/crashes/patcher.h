@@ -204,7 +204,7 @@ static struct patch_set patch_DisableLoadingScreen =
         0,
         {
                 { 5, (void *)0x00748CF6, NULL, NULL, (uint8_t *)"\xE8\x15\xE7\xDB\xFF" },
-                //{ 5, (void *)0x00590D7C, NULL, NULL, (uint8_t *)"\xE8\x3F\xFD\xFF\xFF" }, // uncommet this and our FPS is limited to 60.
+                { 5, (void *)0x00590D7C, NULL, NULL, (uint8_t *)"\xE8\x3F\xFD\xFF\xFF" }, // uncommet this and our FPS is limited to 60.
                 { 5, (void *)0x00590DB3, NULL, NULL, (uint8_t *)"\xE8\x08\xFD\xFF\xFF" },
                 { 5, (void *)0x00590D9F, NULL, (uint8_t *)"\xC3\x90\x90\x90\x90", (uint8_t *)"\xE9\xCC\xF7\xFF\xFF" }
         }

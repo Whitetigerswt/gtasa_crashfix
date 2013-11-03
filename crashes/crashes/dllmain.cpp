@@ -139,17 +139,6 @@ static void WINAPI Load() {
 		MemPut < BYTE > ( 0x5E68A0, 0xEB );
 
 
-		/*
-		//DISABLE CPad::ReconcileTwoControllersInput
-		MemPut < BYTE > ( 0x53F530, 0xC2 );
-		MemPut < BYTE > ( 0x53F531, 0x0C );
-		MemPut < BYTE > ( 0x53F532, 0x00 );
-
-		MemPut < BYTE > ( 0x53EF80, 0xC3 );
-
-		MemPut < BYTE > ( 0x541DDC, 0xEB );
-		MemPut < BYTE > ( 0x541DDD, 0x60 );*/
-
 		// DISABLE CWanted Helis (always return 0 from CWanted::NumOfHelisRequired)
 		MemPut < BYTE > ( 0x561FA4, 0x90 );
 		MemPut < BYTE > ( 0x561FA5, 0x90 );
@@ -315,16 +304,23 @@ static void WINAPI Load() {
 		MemCpy ( (void *)0x590D9F, "\xC3\x90\x90\x90\x90", 5 );
 
 		MemPut < int > ( 0x54F3A1, 1800 );
+
+		memcpy_safe((void *)0x82C5CC, "\xC9\xC3", 2); // little anticrash patch (gta:sa) (from s0beit)
+
+		// 0x: Set's the Frame Sleeping to 0 so you get more performance (sa:mp init is so far a good place ;d) .
+		*(BYTE*)0xBAB318 = 0;  *(BYTE*)0x53E94C = 0; // (from s0beit)
 		
 	}
+
+	InitHooks_CrashFixHacks ( );
 
 	// Black roads fix
 	
 	MemPut < BYTE > ( 0x884984, 0 );
 
-	CGammaRamp GammaRamp;
+	
 
-	InitHooks_CrashFixHacks ( );
+	CGammaRamp GammaRamp;
 
 	ifstream ifile("crashes.cfg");
 	string type = "";

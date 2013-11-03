@@ -885,13 +885,15 @@ void OnMY_Rtl_fopen_Post( FILE* fh, DWORD calledFrom, const char* szFilename, co
     // Check for file open error
     if ( !fh )
     {
+		int lastIdx = strlen(szFilename) - 1;
+		if(szFilename[lastIdx] == 'b' && szFilename[lastIdx-1] == '.') {
+			return;
+		}
 		Log* log = new Log("crashes.log");
 		char err[256];
 		sprintf_s(err, sizeof(err), "%s has failed to open!", szFilename);
-		int lastIdx = strlen(szFilename) - 1;
-		if(szFilename[lastIdx] == 'b' && szFilename[lastIdx-1] == '.') {
-			delete log;
-		}
+		
+		
 		log->Write(err);
 		delete log;
     }
