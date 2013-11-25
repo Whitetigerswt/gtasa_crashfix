@@ -4,4 +4,4 @@ most credits go to the MTA team, and the original code can be found at: https://
 
 ASI Loader download: http://www.gtagarage.com/mods/show.php?id=8321
 
-compiled .asi: https://sixtytiger.com/tiger/random/crashes/crashes.asi
+Credits: MTA:SA, Deji, 0x688
