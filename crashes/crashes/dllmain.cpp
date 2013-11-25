@@ -45,6 +45,10 @@ void SetHeatHazeEnabled ( bool bEnabled )
         MemPut < BYTE > ( 0x701780, 0xC3 );
 }
 
+DWORD GetModuleBaseAddress(char* module) {
+	return (DWORD)GetModuleHandle (module);
+}
+
 static void WINAPI Load() {
 	DWORD oldProt;
 	VirtualProtect((LPVOID)0x401000, 0x4A3000, PAGE_EXECUTE_READWRITE, &oldProt);
@@ -57,7 +61,7 @@ static void WINAPI Load() {
 	}
 
 	if(GetModuleHandle("samp.dll") != NULL) {
-	
+
 		// STOP IT TRYING TO LOAD THE SCM
 		MemPut < BYTE > ( 0x468EB5, 0xEB );
 		MemPut < BYTE > ( 0x468EB6, 0x32 );
@@ -309,16 +313,19 @@ static void WINAPI Load() {
 
 		// 0x: Set's the Frame Sleeping to 0 so you get more performance (sa:mp init is so far a good place ;d) .
 		*(BYTE*)0xBAB318 = 0;  *(BYTE*)0x53E94C = 0; // (from s0beit)
-		
+
+		DWORD bAddr = GetModuleBaseAddress("samp.dll");
+		if(*(int*)(bAddr + 0x2CD600) == 3000) { // if is 0.3x-R1-2
+			bAddr += 0x2CD600;
+		} else if(*(int*)(bAddr + 0x2607DC) == 3000) { // if is 0.3x
+			bAddr += 0x2607DC;
+		}
+
+		VirtualProtect((LPVOID)bAddr, 4, PAGE_EXECUTE_READWRITE, &oldProt);
+		MemPutFast < int > ( bAddr, 0 );
 	}
 
 	InitHooks_CrashFixHacks ( );
-
-	// Black roads fix
-	
-	MemPut < BYTE > ( 0x884984, 0 );
-
-	
 
 	CGammaRamp GammaRamp;
 
@@ -338,6 +345,28 @@ static void WINAPI Load() {
 				setVolumetricShadows(enabled == 1 ? true : false);
 			} else if(type.compare("heathaze") == 0) {
 				SetHeatHazeEnabled(enabled == 1 ? true : false);
+			} else if(type.compare("sound") == 0) {
+				if(enabled == 0) MemPut < int > (0x507750, 0xC3);
+			} else if(type.compare("vehiclelighting") == 0) {
+				if(enabled == 0) MemPut < BYTE > (0x5D9A8F, 0);
+			} else if(type.compare("specularvehicle") == 0) {
+				if(enabled == 0) MemPut < BYTE > (0x5D9ABE, 0);
+			} else if(type.compare("targetblip") == 0) {
+				if(enabled == 0) MemPut < BYTE > (0x53E1EC, 0xEB);
+			} else if(type.compare("clouds") == 0) {
+				if(enabled == 0) {
+					MemPut < int > (0x53E1B4, 0x90909090);
+					MemPut < BYTE > (0x53E1B8, 0x90);
+				}
+			} else if(type.compare("flashes") == 0) {
+				if(enabled == 0) MemPut < BYTE > (0x7000E0, 0xC3);	
+			} else if(type.compare("fixblackroads") == 0) {
+				if(enabled == 1) MemPut < BYTE > ( 0x884984, 0 );
+			} else if(type.compare("interiorreflections") == 0) {
+				if(enabled == 0) {
+					MemPut < int > (0x555854, 0x90909090);
+					MemPut < BYTE > (0x555858, 0x90);
+				}
 			}
 		}
 	} else {
@@ -346,12 +375,20 @@ static void WINAPI Load() {
 		ofile << "mousefix 1" << endl;
 		ofile << "shadows 0" << endl;
 		ofile << "heathaze 0" << endl;
+		ofile << "sound 1" << endl;
+		ofile << "vehiclelighting 1" << endl;
+		ofile << "specularvehicle 1" << endl;
+		ofile << "targetblip 1" << endl;
+		ofile << "clouds 0" << endl;
+		ofile << "flashes 0" << endl;
+		ofile << "fixblackroads 1" << endl;
+		ofile << "interiorreflections 1" << endl;
 		ofile.close();
 
 		brightness = -1;
 		mousefix = 1;
 
-		ofstream readfile("crashes_readme.txt");
+		ofstream readfile("crashes.cfg_readme.txt");
 		readfile << "brightness - the brightness setting can adjust your brightness at a much higher and lower rate than the regular ingame brightness, thats why it was added." << endl;
 		readfile << "if it's set to -1, it will use your ingame brightness bar to adjust your brightness, only change it from -1 if setting to the max brightness ingame is not bright enough, or you want to fine tune it more than the ingame setting can provide" << endl;
 		readfile << "this also fixes brightness not working in Windows 8" << endl << endl;
@@ -359,6 +396,14 @@ static void WINAPI Load() {
 		readfile << "mousefix - this setting fixes a windows 8 only problem of sometimes after an alt tab being able to see the mouse cursor over GTA:SA, disable if you're not using windows 8" << endl;
 		readfile << "shadows - enable or disables volumetric shadows, AKA the shitty shadows that lag even the best of PC's. run your game on very high FX quality without those shadows that looked ugly, and lagged your game anyway!" << endl;
 		readfile << "heathaze - enable or disable heat haze." << endl;
+		readfile << "sound - set to 0 to disable all ingame sound." << endl;
+		readfile << "vehiclelighting - set to 0 to disable vehicle lighting." << endl;
+		readfile << "specularvehicle - set to 0 to disable specular vehicle lighting." << endl;
+		readfile << "targetblip - set to 0 to disable target blip above peds heads when aiming at them." << endl;
+		readfile << "clouds - set to 0 to disable all clouds" << endl;
+		readfile << "flashes - set to 0 to disable flashes" << endl;
+		readfile << "fixblackroads - set to 1 to fix black roads on some PC's off in the distance" << endl;
+		readfile << "interiorreflections - set to 0 to disable interior reflections" << endl;
 		readfile.close();
 	}
 	
