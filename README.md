@@ -1,7 +1,28 @@
-A GTA:SA .ASI mod that fixes many obscure crashes within the game, thanks to MTA's research. this mod also patches some stupid shit within the game, fixes mouse not working after alt tab, and some other fixes. 
+Fix GTA:SA Bugs ASI
+=============
+
+This mod does the following things:
+
+- Fixes aproxamently 30 crashes that can occur in GTA:SA.
+- Allows all resolutions and aspect ratios to be used
+- Removes interior music.
+- Removes clouds.
+- Disables parts of the frame limiter to increase FPS.
+- Fixes a couple of compatability problems with Windows 8.
+- Implements Deji's StreamIni extender CLEO.
+- Implements Ryosuke839's fastloader.asi - The game loads in about 2 seconds for me.
+
+
+Requirements
+-------
+
+- GTA:SA
+- Microsoft Visual C++ 2010 Runtime Redistributable (x86): http://www.microsoft.com/en-us/download/details.aspx?id=5555
+- ASI Loader: http://www.gtagarage.com/mods/show.php?id=8321
+
+Credits
+-------
 
 most credits go to the MTA team, and the original code can be found at: https://code.google.com/p/mtasa-blue/
 
-ASI Loader download: http://www.gtagarage.com/mods/show.php?id=8321
-
-Credits: MTA:SA, Deji, 0x688
+Credits: MTA:SA, Deji, 0x688, Ryosuke839
