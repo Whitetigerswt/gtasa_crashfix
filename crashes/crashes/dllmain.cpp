@@ -9,6 +9,7 @@
 #include "log.h"
 #include "gammaramp.h"
 #include "patcher.h"
+#include "quickload.h"
 #include <iostream>
 #include <fstream>
 
@@ -45,15 +46,12 @@ void SetHeatHazeEnabled ( bool bEnabled )
         MemPut < BYTE > ( 0x701780, 0xC3 );
 }
 
-DWORD GetModuleBaseAddress(char* module) {
-	return (DWORD)GetModuleHandle (module);
-}
-
 static void WINAPI Load() {
 	DWORD oldProt;
 	VirtualProtect((LPVOID)0x401000, 0x4A3000, PAGE_EXECUTE_READWRITE, &oldProt);
 
-	patcher_install(&patch_DisableLoadingScreen);
+	//patcher_install(&patch_DisableLoadingScreen);
+	quickLoadPatches();
 	patcher_install(&patch_EnableResolutions);
 	
 	while(*(int*)0xB6F5F0 == 0) { 
@@ -312,17 +310,9 @@ static void WINAPI Load() {
 		memcpy_safe((void *)0x82C5CC, "\xC9\xC3", 2); // little anticrash patch (gta:sa) (from s0beit)
 
 		// 0x: Set's the Frame Sleeping to 0 so you get more performance (sa:mp init is so far a good place ;d) .
-		*(BYTE*)0xBAB318 = 0;  *(BYTE*)0x53E94C = 0; // (from s0beit)
+		*(BYTE*)0xBAB318 = 0;  *(BYTE*)0x53E94C = 0; // (from s0beit)	
 
-		DWORD bAddr = GetModuleBaseAddress("samp.dll");
-		if(*(int*)(bAddr + 0x2CD600) == 3000) { // if is 0.3x-R1-2
-			bAddr += 0x2CD600;
-		} else if(*(int*)(bAddr + 0x2607DC) == 3000) { // if is 0.3x
-			bAddr += 0x2607DC;
-		}
-
-		VirtualProtect((LPVOID)bAddr, 4, PAGE_EXECUTE_READWRITE, &oldProt);
-		MemPutFast < int > ( bAddr, 0 );
+		
 	}
 
 	InitHooks_CrashFixHacks ( );

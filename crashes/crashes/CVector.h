@@ -92,7 +92,7 @@ public:
         vecRotation.fZ = atan2 ( fY, fX );
         CVector vecTemp ( sqrt ( fX * fX + fY * fY ), fZ, 0 );
         vecTemp.Normalize ();
-        vecRotation.fY = atan2 ( vecTemp.fX, vecTemp.fY ) - M_PI / 2;
+        (float)vecRotation.fY = (float)(atan2 ( vecTemp.fX, vecTemp.fY ) - M_PI / 2.0);
         return vecRotation;
     }
 
