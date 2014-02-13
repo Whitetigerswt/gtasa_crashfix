@@ -31,7 +31,9 @@ bool quickLoadPatches( )
 
 	DWORD bAddr = GetModuleBaseAddress("samp.dll");
 
-	if(*(int*)(bAddr + 0x244A7E) == 3000) { // 0.3x-R2-pre-release 2
+	if(*(int*)(bAddr + 0x2AE035) == 3000) { // 0.3z R1
+		bAddr += 0x2AE035;
+	} else if(*(int*)(bAddr + 0x244A7E) == 3000) { // 0.3x-R2-pre-release 2
 		bAddr += 0x244A7E;
 	} else if(*(int*)(bAddr + 0x295074) == 3000) { // 0.3x-R2-pre-release 1
 		bAddr += 0x295074;
