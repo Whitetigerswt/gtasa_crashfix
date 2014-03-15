@@ -51,7 +51,10 @@ static void WINAPI Load() {
 	VirtualProtect((LPVOID)0x401000, 0x4A3000, PAGE_EXECUTE_READWRITE, &oldProt);
 
 	//patcher_install(&patch_DisableLoadingScreen);
-	quickLoadPatches();
+	if(GetModuleHandle("samp.dll") != NULL) {
+		quickLoadPatches();
+	}
+
 	patcher_install(&patch_EnableResolutions);
 	
 	while(*(int*)0xB6F5F0 == 0) { 
