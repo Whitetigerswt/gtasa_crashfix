@@ -5,7 +5,6 @@
 #include "memory.h"
 #include "quickload.h"
 
-
 void ShowRaster_Prox();
 void StartGame_Prox();
 void ChangeMenu_Prox();
@@ -25,17 +24,21 @@ int iAlreadyPatched = 2;
 DWORD GetModuleBaseAddress(char* module) {
 	return (DWORD)GetModuleHandle (module);
 }
+
+void disableFPSLock() {
+	DWORD dwSAMPBase = GetModuleBaseAddress("samp.dll");
+	
+}
 bool quickLoadPatches( )
 {
 	unsigned long dwValue;
 
-	// b stands for bool, it will confuse some programmers so... yea
 	DWORD dwSAMPBase = GetModuleBaseAddress("samp.dll");
 	DWORD dwConnectDelay, dwFPSSleep;
 
 	if(*(int*)(dwSAMPBase + 0x2AE035) == 3000) { // 0.3z R1
 		dwConnectDelay = dwSAMPBase + 0x2AE035;
-		dwFPSSleep 	   = dwSAMPBase + 0x65AC0; // only for .3z for yet.
+		dwFPSSleep = dwSAMPBase + 0x65ABE;
 	} else if(*(int*)(dwSAMPBase + 0x244A7E) == 3000) { // 0.3x-R2-pre-release 2
 		dwConnectDelay = dwSAMPBase + 0x244A7E;
 	} else if(*(int*)(dwSAMPBase + 0x295074) == 3000) { // 0.3x-R2-pre-release 1
@@ -44,18 +47,21 @@ bool quickLoadPatches( )
 		dwConnectDelay = dwSAMPBase + 0x2CD600;
 	} else if(*(int*)(dwSAMPBase + 0x2607DC) == 3000) { // 0.3x
 		dwConnectDelay = dwSAMPBase + 0x2607DC;
-	} 
+	}
 
 	DWORD oldProt;
-	VirtualProtect((LPVOID)dwSAMPBase, 4, PAGE_EXECUTE_READWRITE, &oldProt);
+	VirtualProtect((LPVOID)dwConnectDelay, 4, PAGE_EXECUTE_READWRITE, &oldProt);
 	if ( dwConnectDelay != NULL ) {
 		MemPutFast < int > ( dwConnectDelay, 0 );
 	}
+
+
 	if ( dwFPSSleep != NULL ) {
-		// Disable the 100FPS Lock, dont know why it exists ...
-		VirtualProtect((LPVOID)dwFPSSleep, 5, PAGE_EXECUTE_READWRITE, &oldProt);
-		memcpy((void*)dwFPSSleep, "\x90\x90\x90\x90\x90", 5);
+		// Disable the 100FPS Lock
+		VirtualProtect((LPVOID)dwFPSSleep, 4, PAGE_EXECUTE_READWRITE, &oldProt);
+		MemPutFast < BYTE > (dwFPSSleep, 0xEB);
 	}
+	
 
 	/*if (check((void*)0x747483, 0x89, "Initialize game state", true)) nop(0x747483, 6);
 	else if (check((void*)0x7474D3, 0x89, "Initialize game state", false)) nop(0x7474D3, 6);*/

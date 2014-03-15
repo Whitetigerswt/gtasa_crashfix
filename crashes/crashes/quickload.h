@@ -1,1 +1,2 @@
 bool quickLoadPatches( );
+void disableFPSLock();
