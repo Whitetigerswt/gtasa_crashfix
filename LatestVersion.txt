@@ -1,1 +1,1 @@
-1.9
+1.9 https://github.com/Whitetigerswt/gtasa_crashfix/releases/download/v1.8/crashes.asi
