@@ -51,6 +51,18 @@
     <ClInclude Include="RenderWare.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gammaramp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="patcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="quickload.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="crashes.cpp">
@@ -66,6 +78,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gammaramp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="patcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="quickload.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

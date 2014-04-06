@@ -1218,6 +1218,52 @@ void _declspec(naked) HOOK_StoreShadowForVehicle ()
     }
 }
 
+#define HOOKPOS_FixClimbBug                             0x04B5AE5
+#define HOOKSIZE_FixClimbBug                            6
+#define FixClimbBug_alt									0x04B5CDC
+DWORD RETURN_FixClimbBug =								0x04B5AEB;
+DWORD fixClimbBugAlt_DWORD = 0x04B5CDC;
+
+int g_iPlayer = 0;
+
+void _declspec(naked) HOOK_FixClimbBug () { 
+
+	_asm 	jnz		FixClimbBug_alt
+
+	g_iPlayer = *(int*)0xB6F5F0;
+	if(*(BYTE*)(g_iPlayer + 0x46D) == 34 || *(BYTE*)(g_iPlayer + 0x15C) != 0) {
+		_asm {
+			jmp fixClimbBugAlt_DWORD
+		}
+	}
+
+	_asm {
+		mov eax,0028FA00h
+		mov ecx,28F934h
+		mov edx,004B5AC6h
+		jmp RETURN_FixClimbBug
+
+	}
+
+	/*_asm {
+	    mov eax,dword ptr ds:[playerpointer_addr]
+		mov ecx, dword ptr ds:[eax]
+		mov dword ptr ds:[playerpointer],ecx
+		mov edx, dword ptr ds:[playerpointer]
+		movzx eax, byte ptr ds:[playerpointer+46Dh]
+		cmp edx,22h
+        je FixClimbBug_alt
+        mov ecx,dword ptr ds:[playerpointer]
+	    movzx edx,byte ptr ds:[eax+15Ch]
+        test edx,edx
+        jne FixClimbBug_alt
+		mov eax,0028FA00h
+		mov ecx,28F934h
+		mov edx,004B5AC6h
+		jmp RETURN_FixClimbBug
+	}*/
+}
+
 void InitHooks_CrashFixHacks ()
 {
     EZHookInstall ( CrashFix_Misc1 );
@@ -1253,4 +1299,5 @@ void InitHooks_CrashFixHacks ()
     HookInstall ( HOOKPOS_StoreShadowForVehicle, (DWORD)HOOK_StoreShadowForVehicle, 9 );
 	EZHookInstall ( CClumpModelInfo_GetFrameFromId );
 	EZHookInstall ( Rtl_fopen );
+	EZHookInstall ( FixClimbBug );
 }

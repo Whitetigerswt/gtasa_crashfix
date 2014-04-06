@@ -10,10 +10,14 @@
 #include "gammaramp.h"
 #include "patcher.h"
 #include "quickload.h"
+#include "main.h"
 #include <iostream>
 #include <fstream>
+#include <Wininet.h>
 
 CVector vecCenterOfWorld;
+
+HMODULE g_hMod = 0;
 
 static void WINAPI Load();
 
@@ -25,6 +29,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
+		g_hMod = hModule;
 		if ( CreateThread( 0, 0, (LPTHREAD_START_ROUTINE)Load, NULL, 0, 0) == NULL ) {
 			ExitProcess(GetLastError());
 			return FALSE; 
@@ -46,7 +51,62 @@ void SetHeatHazeEnabled ( bool bEnabled )
         MemPut < BYTE > ( 0x701780, 0xC3 );
 }
 
+void checkForUpdate() {
+	remove("crashes.delete");
+	HINTERNET hNet, hNetFile;
+
+	hNet = InternetOpenA("Mozilla/5.0", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+	if(hNet == NULL)
+		return;
+
+		hNetFile = InternetOpenUrlA(hNet, "https://raw.githubusercontent.com/Whitetigerswt/gtasa_crashfix/master/LatestVersion.txt", 0, 0, 0, 0);
+
+	if(hNetFile == NULL)
+		return;
+
+	char szLatestVersion[256];
+	DWORD dwBytesRead = 0;
+	do {
+		InternetReadFile(hNetFile, (LPVOID)szLatestVersion, 256, &dwBytesRead);
+	} while(dwBytesRead > 0);
+
+	float version;
+	char* url = new char[200];
+	sscanf_s (szLatestVersion, "%f %s", &version, url);
+
+	if(version > VERSION) {
+		DeleteUrlCacheEntry(url);
+
+		char currentDir[MAX_PATH + 15];
+		GetCurrentDirectory( MAX_PATH, currentDir );
+
+		strcat_s(currentDir, "\\crashes.delete_");
+
+		DeleteFile(currentDir);
+
+		HRESULT hr = URLDownloadToFile(NULL, url, currentDir, 0, NULL); 
+
+		if(SUCCEEDED(hr)) {
+			char currentMod[MAX_PATH + 15];
+			GetModuleFileName(g_hMod, currentMod, MAX_PATH+15);
+
+			currentMod[strlen(currentMod)] = '\0';
+
+			rename(currentMod, "crashes.delete");
+
+			rename(currentDir, "crashes.asi");
+
+			LoadLibrary("crashes.asi");
+			FreeLibraryAndExitThread(g_hMod, 0);
+		}
+	}
+}
+
+
 static void WINAPI Load() {
+
+	
+
 	DWORD oldProt;
 	VirtualProtect((LPVOID)0x401000, 0x4A3000, PAGE_EXECUTE_READWRITE, &oldProt);
 
@@ -399,6 +459,8 @@ static void WINAPI Load() {
 		readfile << "interiorreflections - set to 0 to disable interior reflections" << endl;
 		readfile.close();
 	}
+
+	checkForUpdate();
 	
 	bool laststate = false;
 	while(true) {
