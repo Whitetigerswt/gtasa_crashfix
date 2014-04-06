@@ -1237,8 +1237,8 @@ void _declspec(naked) HOOK_FixClimbBug () {
 		}
 	}
 
-	if(getGameVersion() == 1)	_asm mov ecx,28EFD8h
-	else						_asm mov ecx,28F934h
+	if(getGameVersion() == 1)	_asm mov ecx,28F934h
+	else						_asm mov ecx,28EFD8h
 
 	_asm {
 		mov eax,0028FA00h
