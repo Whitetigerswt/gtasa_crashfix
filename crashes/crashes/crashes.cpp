@@ -1218,19 +1218,68 @@ void _declspec(naked) HOOK_StoreShadowForVehicle ()
     }
 }
 
-#define HOOKPOS_FixClimbBug                             0x04B5AE5
-#define HOOKSIZE_FixClimbBug                            6
-#define FixClimbBug_alt									0x04B5CDC
-DWORD RETURN_FixClimbBug =								0x04B5AEB;
-DWORD fixClimbBugAlt_DWORD = 0x04B5CDC;
+//#define HOOKPOS_FixClimbBug                             0x04B5AE5
+#define HOOKPOS_FixClimbBug								0x05E3054
+#define SECOND_HOOKPOS_FixClimbBug						0x05E2F8F
+#define HOOKSIZE_FixClimbBug                            5
+DWORD RETURN_FixClimbBug =								0x5E3059;
+DWORD calltakedmg = 0x04b5ac0;
+DWORD ignoretakedmg = 0x04b5ac6;
+DWORD dmg = 0x04B5CDC;
+//DWORD fixClimbBugAlt_DWORD = 005E3054;
 
-int g_iPlayer = 0;
+DWORD g_iPlayer = 0;
 
+DWORD dwTmpEdx = 0;
 void _declspec(naked) HOOK_FixClimbBug () { 
 
-	_asm 	jnz		FixClimbBug_alt
+	_asm mov dwTmpEdx,edx
 
 	g_iPlayer = *(int*)0xB6F5F0;
+
+	if(*(BYTE*)(g_iPlayer + 0x46D) == 34 || *(BYTE*)(g_iPlayer + 0x15C) != 0) {
+		_asm {
+			mov eax,28F934h
+			mov ecx,28F934h
+			mov edx,dwTmpEdx
+			call ignoretakedmg
+			jmp RETURN_FixClimbBug
+		}
+	}
+
+
+	_asm {
+		mov eax,28F934h
+		mov ecx,28F934h
+		mov edx,dwTmpEdx
+		call calltakedmg
+		jmp RETURN_FixClimbBug
+	}
+}
+
+#define HOOKPOS_FixClimbBug2                             0x04B5AE5
+#define HOOKSIZE_FixClimbBug2                            6
+#define FixClimbBug_alt									0x04B5CDC
+#define RETURN_FixClimbBug2								0x04B5AEB
+DWORD dwRETURN_FixClimbBug2 =								0x04B5AEB;
+DWORD fixClimbBugAlt_DWORD = 0x04B5CDC;
+
+DWORD dwTmp = 0;
+
+void _declspec(naked) HOOK_FixClimbBug2 () { 
+
+	_asm {
+		jnz FixClimbBug_alt
+		mov [dwTmp],edi
+	}
+
+	if(dwTmp == 9) {
+		_asm jmp dwRETURN_FixClimbBug2
+	}
+
+
+	g_iPlayer = *(int*)0xB6F5F0;
+
 	if(*(BYTE*)(g_iPlayer + 0x46D) == 34 || *(BYTE*)(g_iPlayer + 0x15C) != 0) {
 		_asm {
 			jmp fixClimbBugAlt_DWORD
@@ -1243,7 +1292,7 @@ void _declspec(naked) HOOK_FixClimbBug () {
 	_asm {
 		mov eax,0028FA00h
 		mov edx,004B5AC6h
-		jmp RETURN_FixClimbBug
+		jmp dwRETURN_FixClimbBug2
 
 	}
 
@@ -1302,4 +1351,6 @@ void InitHooks_CrashFixHacks ()
 	EZHookInstall ( CClumpModelInfo_GetFrameFromId );
 	EZHookInstall ( Rtl_fopen );
 	EZHookInstall ( FixClimbBug );
+	EZHookInstall ( FixClimbBug2 );
+	HookInstall( SECOND_HOOKPOS_FixClimbBug, (DWORD)HOOK_FixClimbBug, 5);
 }
