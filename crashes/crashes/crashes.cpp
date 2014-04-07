@@ -1230,10 +1230,10 @@ DWORD dmg = 0x04B5CDC;
 
 DWORD g_iPlayer = 0;
 
-DWORD dwTmpEdx = 0;
+DWORD dwTmp = 0;
 void _declspec(naked) HOOK_FixClimbBug () { 
 
-	_asm mov dwTmpEdx,edx
+	_asm mov dwTmp,edx
 
 	g_iPlayer = *(int*)0xB6F5F0;
 
@@ -1241,7 +1241,7 @@ void _declspec(naked) HOOK_FixClimbBug () {
 		_asm {
 			mov eax,28F934h
 			mov ecx,28F934h
-			mov edx,dwTmpEdx
+			mov edx,dwTmp
 			call ignoretakedmg
 			jmp RETURN_FixClimbBug
 		}
@@ -1251,7 +1251,7 @@ void _declspec(naked) HOOK_FixClimbBug () {
 	_asm {
 		mov eax,28F934h
 		mov ecx,28F934h
-		mov edx,dwTmpEdx
+		mov edx,dwTmp
 		call calltakedmg
 		jmp RETURN_FixClimbBug
 	}
@@ -1264,17 +1264,30 @@ void _declspec(naked) HOOK_FixClimbBug () {
 DWORD dwRETURN_FixClimbBug2 =								0x04B5AEB;
 DWORD fixClimbBugAlt_DWORD = 0x04B5CDC;
 
-DWORD dwTmp = 0;
+DWORD dwTmpEcx = 0;
+DWORD dwTmpEax = 0;
 
 void _declspec(naked) HOOK_FixClimbBug2 () { 
+
+	/*asm {
+		jnz FixClimbBug_alt
+		cmp edi,1
+		jne RETURN_FixClimbBug2
+	}*/
 
 	_asm {
 		jnz FixClimbBug_alt
 		mov [dwTmp],edi
+		mov [dwTmpEcx],ecx
+		mov [dwTmpEax],eax
 	}
 
-	if(dwTmp == 9) {
-		_asm jmp dwRETURN_FixClimbBug2
+	if(dwTmp != 1) {
+		_asm {
+			mov ecx,[dwTmpEcx]
+			mov eax,[dwTmpEax]
+			jmp dwRETURN_FixClimbBug2
+		}
 	}
 
 
@@ -1286,33 +1299,11 @@ void _declspec(naked) HOOK_FixClimbBug2 () {
 		}
 	}
 
-	if(getGameVersion() == 1)	_asm mov ecx,28F934h
-	else						_asm mov ecx,28EFD8h
-
 	_asm {
-		mov eax,0028FA00h
-		mov edx,004B5AC6h
+		mov ecx,[dwTmpEcx]
+		mov eax,[dwTmpEax]
 		jmp dwRETURN_FixClimbBug2
-
 	}
-
-	/*_asm {
-	    mov eax,dword ptr ds:[playerpointer_addr]
-		mov ecx, dword ptr ds:[eax]
-		mov dword ptr ds:[playerpointer],ecx
-		mov edx, dword ptr ds:[playerpointer]
-		movzx eax, byte ptr ds:[playerpointer+46Dh]
-		cmp edx,22h
-        je FixClimbBug_alt
-        mov ecx,dword ptr ds:[playerpointer]
-	    movzx edx,byte ptr ds:[eax+15Ch]
-        test edx,edx
-        jne FixClimbBug_alt
-		mov eax,0028FA00h
-		mov ecx,28F934h
-		mov edx,004B5AC6h
-		jmp RETURN_FixClimbBug
-	}*/
 }
 
 void InitHooks_CrashFixHacks ()
