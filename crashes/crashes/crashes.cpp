@@ -1231,17 +1231,21 @@ DWORD dmg = 0x04B5CDC;
 DWORD g_iPlayer = 0;
 
 DWORD dwTmp = 0;
+DWORD dwTmpEcx = 0;
+DWORD dwTmpEax = 0;
 void _declspec(naked) HOOK_FixClimbBug () { 
 
-	_asm mov dwTmp,edx
+	_asm mov [dwTmp],edx
+	_asm mov [dwTmpEcx],ecx
+	_asm mov [dwTmpEax],eax
 
 	g_iPlayer = *(int*)0xB6F5F0;
 
 	if(*(BYTE*)(g_iPlayer + 0x46D) == 34 || *(BYTE*)(g_iPlayer + 0x15C) != 0) {
 		_asm {
-			mov eax,28F934h
-			mov ecx,28F934h
-			mov edx,dwTmp
+			mov edx,[dwTmp]
+			mov eax,[dwTmpEax]
+			mov ecx,[dwTmpEcx]
 			call ignoretakedmg
 			jmp RETURN_FixClimbBug
 		}
@@ -1249,9 +1253,9 @@ void _declspec(naked) HOOK_FixClimbBug () {
 
 
 	_asm {
-		mov eax,28F934h
-		mov ecx,28F934h
-		mov edx,dwTmp
+		mov edx,[dwTmp]
+		mov eax,[dwTmpEax]
+		mov ecx,[dwTmpEcx]
 		call calltakedmg
 		jmp RETURN_FixClimbBug
 	}
@@ -1263,9 +1267,6 @@ void _declspec(naked) HOOK_FixClimbBug () {
 #define RETURN_FixClimbBug2								0x04B5AEB
 DWORD dwRETURN_FixClimbBug2 =								0x04B5AEB;
 DWORD fixClimbBugAlt_DWORD = 0x04B5CDC;
-
-DWORD dwTmpEcx = 0;
-DWORD dwTmpEax = 0;
 
 void _declspec(naked) HOOK_FixClimbBug2 () { 
 
