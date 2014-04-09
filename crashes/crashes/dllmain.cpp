@@ -11,6 +11,7 @@
 #include "patcher.h"
 #include "quickload.h"
 #include "main.h"
+#include "fixes.h"
 #include <iostream>
 #include <fstream>
 #include <Wininet.h>
@@ -379,6 +380,7 @@ static void WINAPI Load() {
 	}
 
 	InitHooks_CrashFixHacks ( );
+	InitHooks_Fixes( );
 
 	CGammaRamp GammaRamp;
 

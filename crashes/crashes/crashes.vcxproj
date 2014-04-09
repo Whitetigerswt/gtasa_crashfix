@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="crashes.h" />
+    <ClInclude Include="fixes.h" />
     <ClInclude Include="gammaramp.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="memory.h" />
@@ -107,6 +108,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="fixes.cpp" />
     <ClCompile Include="gammaramp.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="memory.cpp" />
