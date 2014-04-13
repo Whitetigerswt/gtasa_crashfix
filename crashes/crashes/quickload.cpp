@@ -4,6 +4,7 @@
 #include <fstream>
 #include "memory.h"
 #include "quickload.h"
+#include "multiplayer_hooksystem.h"
 
 void ShowRaster_Prox();
 void StartGame_Prox();
@@ -24,21 +25,34 @@ int iAlreadyPatched = 2;
 DWORD GetModuleBaseAddress(char* module) {
 	return (DWORD)GetModuleHandle (module);
 }
+DWORD addr = -1;
+void __declspec(naked) FPSStrafeHook() {
+	_asm pushad
 
-void disableFPSLock() {
-	DWORD dwSAMPBase = GetModuleBaseAddress("samp.dll");
-	
+	addr = (DWORD)GetModuleHandle("samp") + 0x65275;
+
+	if(*(BYTE*)0xBA6794 == 0) {
+		_asm popad
+		_asm jmp addr
+	}
+
+	addr = (DWORD)GetModuleHandle("samp") + 0x652A1;
+
+	_asm popad
+	_asm jmp addr
 }
 bool quickLoadPatches( )
 {
 	unsigned long dwValue;
 
 	DWORD dwSAMPBase = GetModuleBaseAddress("samp.dll");
-	DWORD dwConnectDelay, dwFPSSleep;
+	DWORD dwConnectDelay, dwFPSSleep[3];
 
 	if(*(int*)(dwSAMPBase + 0x2AE035) == 3000) { // 0.3z R1
 		dwConnectDelay = dwSAMPBase + 0x2AE035;
-		dwFPSSleep = dwSAMPBase + 0x653E2;
+		dwFPSSleep[0] = dwSAMPBase + 0x6526C;
+		dwFPSSleep[1] = dwSAMPBase + 0x653E0;
+		dwFPSSleep[2] = dwSAMPBase + 0x6527A;
 	} else if(*(int*)(dwSAMPBase + 0x244A7E) == 3000) { // 0.3x-R2-pre-release 2
 		dwConnectDelay = dwSAMPBase + 0x244A7E;
 	} else if(*(int*)(dwSAMPBase + 0x295074) == 3000) { // 0.3x-R2-pre-release 1
@@ -58,8 +72,18 @@ bool quickLoadPatches( )
 
 	if ( dwFPSSleep != NULL ) {
 		// Disable the 100FPS Lock
-		VirtualProtect((LPVOID)dwFPSSleep, 4, PAGE_EXECUTE_READWRITE, &oldProt);
-		memcpy((void*)dwFPSSleep, "\x90\x90\x90\x90\x90\x90\x90", 7);
+		VirtualProtect((LPVOID)dwFPSSleep[0], 7, PAGE_EXECUTE_READWRITE, &oldProt);
+		HookInstall(dwFPSSleep[0], (DWORD)FPSStrafeHook, 7);
+
+		VirtualProtect((LPVOID)dwFPSSleep[1], 4, PAGE_EXECUTE_READWRITE, &oldProt);
+
+		MemPut <BYTE> (dwFPSSleep[1], 0x6A);
+		MemPut <BYTE> (dwFPSSleep[1] + 0x2, 0x0);
+		MemPut <BYTE> (dwFPSSleep[1] + 0x4, 0x90);
+
+		VirtualProtect((LPVOID)dwFPSSleep[2], 5, PAGE_EXECUTE_READWRITE, &oldProt);
+		memcpy((void*)dwFPSSleep[2], "\x90\x90\x90\x90\x90", 5);
+
 	}
 	
 
@@ -158,6 +182,8 @@ void __declspec(naked) ShowRaster_Prox()
 		ret;
 	}
 }
+
+
 
 void __declspec(naked) StartGame_Prox()
 {
