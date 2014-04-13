@@ -38,7 +38,7 @@ bool quickLoadPatches( )
 
 	if(*(int*)(dwSAMPBase + 0x2AE035) == 3000) { // 0.3z R1
 		dwConnectDelay = dwSAMPBase + 0x2AE035;
-		dwFPSSleep = dwSAMPBase + 0x65ABE;
+		dwFPSSleep = dwSAMPBase + 0x653E2;
 	} else if(*(int*)(dwSAMPBase + 0x244A7E) == 3000) { // 0.3x-R2-pre-release 2
 		dwConnectDelay = dwSAMPBase + 0x244A7E;
 	} else if(*(int*)(dwSAMPBase + 0x295074) == 3000) { // 0.3x-R2-pre-release 1
@@ -59,7 +59,7 @@ bool quickLoadPatches( )
 	if ( dwFPSSleep != NULL ) {
 		// Disable the 100FPS Lock
 		VirtualProtect((LPVOID)dwFPSSleep, 4, PAGE_EXECUTE_READWRITE, &oldProt);
-		MemPutFast < BYTE > (dwFPSSleep, 0xEB);
+		memcpy((void*)dwFPSSleep, "\x90\x90\x90\x90\x90\x90\x90", 7);
 	}
 	
 
