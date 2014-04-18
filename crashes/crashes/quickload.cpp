@@ -46,13 +46,14 @@ bool quickLoadPatches( )
 	unsigned long dwValue;
 
 	DWORD dwSAMPBase = GetModuleBaseAddress("samp.dll");
-	DWORD dwConnectDelay, dwFPSSleep[3];
+	DWORD dwConnectDelay, dwFPSSleep[4];
 
 	if(*(int*)(dwSAMPBase + 0x2AE035) == 3000) { // 0.3z R1
 		dwConnectDelay = dwSAMPBase + 0x2AE035;
 		dwFPSSleep[0] = dwSAMPBase + 0x6526C;
 		dwFPSSleep[1] = dwSAMPBase + 0x653E0;
 		dwFPSSleep[2] = dwSAMPBase + 0x6527A;
+		dwFPSSleep[3] = dwSAMPBase + 0x659E1;
 	} else if(*(int*)(dwSAMPBase + 0x244A7E) == 3000) { // 0.3x-R2-pre-release 2
 		dwConnectDelay = dwSAMPBase + 0x244A7E;
 	} else if(*(int*)(dwSAMPBase + 0x295074) == 3000) { // 0.3x-R2-pre-release 1
@@ -83,6 +84,8 @@ bool quickLoadPatches( )
 
 		VirtualProtect((LPVOID)dwFPSSleep[2], 5, PAGE_EXECUTE_READWRITE, &oldProt);
 		memcpy((void*)dwFPSSleep[2], "\x90\x90\x90\x90\x90", 5);
+
+		MemPut <BYTE> (dwFPSSleep[3], 0x0);
 
 	}
 	
