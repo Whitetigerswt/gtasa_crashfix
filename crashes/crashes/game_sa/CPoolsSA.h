@@ -21,6 +21,7 @@
 #include "CVehicleSA.h"
 #include "CObjectSA.h"
 #include "CBuildingSA.h"
+#define INVALID_POOL_ARRAY_ID    0xFFFFFFFF
 
 class CEntryInfoNodePoolSA : public CEntryInfoNodePool
 {
@@ -64,7 +65,7 @@ public:
     void                    DeleteAllVehicles   ( );
 
     // Objects pool
-    CObject*                AddObject           ( DWORD dwModelID, bool bLowLod, bool bBreakable );
+    CObject*                AddObject           ( DWORD dwModelID, bool bLowLod, bool bBreakingDisabled );
 private:
     bool                    AddObjectToPool     ( CObjectSA* pObject );
 public:
@@ -101,7 +102,7 @@ public:
     // Others
     CBuilding*              AddBuilding         ( DWORD dwModelID );
     void                    DeleteAllBuildings  ( );
-    CVehicle*               AddTrain            ( CVector* vecPosition, DWORD dwModels[], int iSize, bool bDirection );
+    CVehicle*               AddTrain            ( CVector* vecPosition, DWORD dwModels[], int iSize, bool bDirection, uchar ucTrackId = 0xFF );
 
     int                     GetNumberOfUsedSpaces   ( ePools pools );
     void                    DumpPoolsStatus         ( );
@@ -121,7 +122,7 @@ private:
     template < class T, class I, unsigned long MAX >
     struct SPoolData
     {
-        typedef         google::dense_hash_map < I*, T* >  mapType;
+        typedef         CFastHashMap < I*, T* >  mapType;
         mapType         map;
         T*              array [ MAX ];
         unsigned long   ulCount;

@@ -20,8 +20,10 @@
 //
 #include <stdarg.h>
 
-#ifdef WIN32
+#ifdef WIN32 
+#ifndef va_copy
     #define va_copy(dest, orig) (dest) = (orig)
+#endif
 #endif
 
 class SString : public std::string
@@ -82,6 +84,10 @@ public:
     {
         return std::string ( *this ) + other;
     }
+	SString operator+( const SString& other ) const
+    {
+        return std::string ( *this ) + other;
+    }
 
     // Assignment  
     operator const char*() const    { return c_str (); }        // Auto assign to const char* without using c_str()
@@ -138,7 +144,7 @@ struct SCharStringRef
 {
     SCharStringRef ( void ) : pData ( NULL ),  uiSize ( 0 ) {}
     char* pData;
-    uint uiSize;
+    size_t uiSize;
 };
 
 
@@ -168,10 +174,10 @@ public:
         this->reserve ( 16U < uiMaxAmount ? 16U : uiMaxAmount );
 
         // Split into pointers
-        unsigned long ulCurrentPoint = 0;
+        size_t ulCurrentPoint = 0;
         while ( true )
         {
-            unsigned long ulPos = strInput.find ( strDelim, ulCurrentPoint );
+            size_t ulPos = strInput.find ( strDelim, ulCurrentPoint );
             if ( ulPos == STRING_TYPE::npos || ( uiMaxAmount > 0 && uiMaxAmount <= this->size () + 1 ) )
             {
                 if ( ulCurrentPoint <= strInput.length () )

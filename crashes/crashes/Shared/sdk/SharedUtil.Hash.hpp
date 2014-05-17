@@ -10,6 +10,8 @@
 *
 *****************************************************************************/
 
+#include "sha2.hpp"
+
 namespace SharedUtil
 {
 
@@ -50,8 +52,8 @@ namespace SharedUtil
             Init ();
     
             // Hash it
-            unsigned char Buffer [1024];
-            while ( unsigned int uiRead = static_cast < unsigned int > ( fread ( Buffer, 1, 1024, pFile ) ) )
+            unsigned char Buffer [65536];
+            while ( unsigned int uiRead = static_cast < unsigned int > ( fread ( Buffer, 1, 65536, pFile ) ) )
             {
                 Update ( Buffer, uiRead );
             }
@@ -143,19 +145,19 @@ namespace SharedUtil
     void CMD5Hasher::Update (unsigned char *input, unsigned int input_length) {
     
         //CRYPT_START
-        unsigned long input_index, buffer_index;
-        unsigned long buffer_space;                // how much space is left in buffer
+        unsigned int  input_index, buffer_index;
+        unsigned int  buffer_space;                // how much space is left in buffer
     
         // Compute number of bytes mod 64
         buffer_index = (unsigned int)((m_count[0] >> 3) & 0x3F);
     
         // Update number of bits
-        if (  (m_count[0] += ((unsigned long) input_length << 3))<((unsigned long) input_length << 3) )
+        if ( (m_count[0] += ((unsigned int)input_length << 3))<((unsigned int)input_length << 3) )
         {
             m_count[1]++;
         }
     
-        m_count[1] += ((unsigned long)input_length >> 29);
+        m_count[1] += ((unsigned int)input_length >> 29);
     
     
         buffer_space = 64 - buffer_index;  // how much space is left in buffer
@@ -200,7 +202,7 @@ namespace SharedUtil
       Encode (bits, m_count, 8);
     
       // Pad out to 56 mod 64.
-      index = (unsigned long) ((m_count[0] >> 3) & 0x3f);
+      index = (unsigned int) ((m_count[0] >> 3) & 0x3f);
       padLen = (index < 56) ? (56 - index) : (120 - index);
       Update (PADDING, padLen);
     
@@ -211,13 +213,13 @@ namespace SharedUtil
       Encode ( m_digest, m_state, 16 );
     
       // Zeroize sensitive information
-      memset ( m_buffer, 0, sizeof (*m_buffer) );
+      memset ( m_buffer, 0, sizeof (m_buffer) );
     }
     
     
     void CMD5Hasher::Transform ( unsigned char block [64] )
     {
-        unsigned long a = m_state[0], b = m_state[1], c = m_state[2], d = m_state[3], x[16];
+        unsigned int a = m_state[0], b = m_state[1], c = m_state[2], d = m_state[3], x[16];
     
         Decode (x, block, 64);
     
@@ -303,7 +305,7 @@ namespace SharedUtil
     }
     
     
-    void CMD5Hasher::Encode (unsigned char *output, unsigned long *input, unsigned long len)
+    void CMD5Hasher::Encode (unsigned char *output, unsigned int *input, unsigned long len)
     {
       unsigned int i, j;
     
@@ -316,71 +318,71 @@ namespace SharedUtil
     }
     
     
-    void CMD5Hasher::Decode (unsigned long *output, unsigned char *input, unsigned long len)
+    void CMD5Hasher::Decode (unsigned int *output, unsigned char *input, unsigned long len)
     {
-      unsigned int i, j;
-    
-      for (i = 0, j = 0; j < len; i++, j += 4)
-        output[i] = ((unsigned long)input[j]) | (((unsigned long)input[j+1]) << 8) |
-          (((unsigned long)input[j+2]) << 16) | (((unsigned long)input[j+3]) << 24);
+        unsigned int i, j;
+
+        for ( i = 0, j = 0; j < len; i++, j += 4 )
+            output[i] = ((unsigned int)input[j]) | (((unsigned int)input[j+1]) << 8) |
+            (((unsigned int)input[j+2]) << 16) | (((unsigned int)input[j+3]) << 24);
     }
-    
-    
-    inline unsigned long CMD5Hasher::RotateLeft (unsigned long x, unsigned long n )
+
+
+    inline unsigned int  CMD5Hasher::RotateLeft ( unsigned int  x, unsigned int  n )
     {
-      return (x << n) | (x >> (32-n));
+        return (x << n) | (x >> (32 - n));
     }
-    
-    
-    inline unsigned long CMD5Hasher::F ( unsigned long x, unsigned long y, unsigned long z )
+
+
+    inline unsigned int  CMD5Hasher::F ( unsigned int  x, unsigned int  y, unsigned int  z )
     {
         return (x & y) | (~x & z);
     }
-    
-    
-    inline unsigned long CMD5Hasher::G ( unsigned long x, unsigned long y, unsigned long z )
+
+
+    inline unsigned int  CMD5Hasher::G ( unsigned int  x, unsigned int  y, unsigned int  z )
     {
         return (x & z) | (y & ~z);
     }
-    
-    
-    inline unsigned long CMD5Hasher::H ( unsigned long x, unsigned long y, unsigned long z )
+
+
+    inline unsigned int  CMD5Hasher::H ( unsigned int  x, unsigned int  y, unsigned int  z )
     {
         return x ^ y ^ z;
     }
-    
-    
-    inline unsigned long CMD5Hasher::I ( unsigned long x, unsigned long y, unsigned long z )
+
+
+    inline unsigned int  CMD5Hasher::I ( unsigned int  x, unsigned int  y, unsigned int  z )
     {
         return y ^ (x | ~z);
     }
-    
-    
-    inline void CMD5Hasher::FF ( unsigned long& a, unsigned long b, unsigned long c, unsigned long d, unsigned long x, unsigned long  s, unsigned long ac )
+
+
+    inline void CMD5Hasher::FF ( unsigned int & a, unsigned int  b, unsigned int  c, unsigned int  d, unsigned int  x, unsigned int   s, unsigned int  ac )
     {
-        a += F(b, c, d) + x + ac;
-        a = RotateLeft (a, s) +b;
+        a += F ( b, c, d ) + x + ac;
+        a = RotateLeft ( a, s ) + b;
     }
-    
-    
-    inline void CMD5Hasher::GG ( unsigned long& a, unsigned long b, unsigned long c, unsigned long d, unsigned long x, unsigned long s, unsigned long ac )
+
+
+    inline void CMD5Hasher::GG ( unsigned int & a, unsigned int  b, unsigned int  c, unsigned int  d, unsigned int  x, unsigned int  s, unsigned int  ac )
     {
-        a += G(b, c, d) + x + ac;
-        a = RotateLeft (a, s) +b;
+        a += G ( b, c, d ) + x + ac;
+        a = RotateLeft ( a, s ) + b;
     }
-    
-    
-    inline void CMD5Hasher::HH ( unsigned long& a, unsigned long b, unsigned long c, unsigned long d, unsigned long x, unsigned long s, unsigned long ac )
+
+
+    inline void CMD5Hasher::HH ( unsigned int & a, unsigned int  b, unsigned int  c, unsigned int  d, unsigned int  x, unsigned int  s, unsigned int  ac )
     {
-        a += H(b, c, d) + x + ac;
-        a = RotateLeft (a, s) +b;
+        a += H ( b, c, d ) + x + ac;
+        a = RotateLeft ( a, s ) + b;
     }
-    
-    
-    inline void CMD5Hasher::II ( unsigned long& a, unsigned long b, unsigned long c, unsigned long d, unsigned long x, unsigned long s, unsigned long ac )
+
+
+    inline void CMD5Hasher::II ( unsigned int & a, unsigned int  b, unsigned int  c, unsigned int  d, unsigned int  x, unsigned int  s, unsigned int  ac )
     {
-        a += I(b, c, d) + x + ac;
-        a = RotateLeft (a, s) +b;
+        a += I ( b, c, d ) + x + ac;
+        a = RotateLeft ( a, s ) + b;
     }
 
 
@@ -470,4 +472,179 @@ namespace SharedUtil
         return c;
     }
 
+
+    SString ConvertDataToHexString( const void* pData, uint uiLength )
+    {
+        static const char szAlphaNum[] = "0123456789ABCDEF";
+        const uchar* pInput = (const uchar*)pData;
+        SString strResult;
+        for ( uint i = 0; i < uiLength; i++ )
+        {
+            uchar c = pInput[i];
+            strResult += szAlphaNum[ ( c >> 4 ) & 0x0F ];
+            strResult += szAlphaNum[ c & 0x0F ];
+        }
+        return strResult;
+    }
+
+    void ConvertHexStringToData( const SString& strString, void* pOutData, uint uiLength )
+    {
+        memset( pOutData, 0, uiLength );
+        uint uiNibbleAmount = Min < uint > ( uiLength * 2, strString.length() );
+        uchar* pOutput = (uchar*)pOutData;
+        for ( uint i = 0; i < uiNibbleAmount; i++ )
+        {
+            uchar c = toupper( strString[ i ] ) - '0';
+            if ( c > 9 )
+                c -= 'A' - '0' - 10;
+            if ( c < 16 )
+            {
+                if ( ( i & 1 ) == 0 )
+                    pOutput[ i / 2 ] = ( c << 4 );  // First nibble
+                else
+                    pOutput[ i / 2 ] |= c;          // Second nibble
+            }
+        }
+    }
+
+    void GenerateSha256( const void* pData, uint uiLength, uchar output[32] )
+    {
+        sha2_context ctx;
+        sha2_starts( &ctx, false );
+        sha2_update( &ctx, (const uchar*)pData, uiLength );
+        sha2_finish( &ctx, output );
+    }
+
+    SString GenerateSha256HexString( const void* pData, uint uiLength )
+    {
+        uchar output[32];
+        GenerateSha256( pData, uiLength, output );
+        return ConvertDataToHexString( output, sizeof( output ) );
+    }
+
+    SString GenerateSha256HexString( const SString& strData )
+    {
+        return GenerateSha256HexString( *strData, strData.length() );
+    }
+
+    void encodeXtea(unsigned int* v, unsigned int* w, unsigned int* k) {
+        register unsigned int v0=v[0], v1=v[1], i, sum=0;
+        register unsigned int delta=0x9E3779B9;
+        for(i=0; i<32; i++) {
+           v0 += (((v1 << 4) ^ (v1 >> 5)) + v1) ^ (sum + k[sum & 3]);
+            sum += delta;
+            v1 += (((v0 << 4) ^ (v0 >> 5)) + v0) ^ (sum + k[(sum>>11) & 3]);
+        }
+        w[0]=v0; w[1]=v1;
+    }
+     
+    void decodeXtea(unsigned int* v, unsigned int* w, unsigned int* k) {
+        register unsigned int v0=v[0], v1=v[1], i, sum=0xC6EF3720;
+        register unsigned int delta=0x9E3779B9;
+        for(i=0; i<32; i++) {
+            v1 -= (((v0 << 4) ^ (v0 >> 5)) + v0) ^ (sum + k[(sum>>11) & 3]);
+            sum -= delta;
+            v0 -= (((v1 << 4) ^ (v1 >> 5)) + v1) ^ (sum + k[sum & 3]);
+        }
+        w[0]=v0; w[1]=v1;
+    }
+
+    void TeaEncode ( const SString& str, const SString& key, SString* out )
+    {
+        unsigned int v[2];
+        unsigned int w[2];
+        unsigned int k[4];
+        unsigned int keybuffer [ 4 ];
+
+        // Clear buffers
+        memset ( v, 0, sizeof(v) );
+        memset ( w, 0, sizeof(w) );
+        memset ( k, 0, sizeof(k) );
+        memset ( keybuffer, 0, sizeof(keybuffer) );
+        out->clear ();
+
+        // Process the key
+        int len = key.length ();
+        if ( len > 16 )
+            len = 16;
+        memcpy ( keybuffer, key.c_str(), len );
+        for ( int i = 0; i < 4; ++i )
+            k[i] = keybuffer[i];
+
+        // Copy the input string to a buffer of size multiple of 4
+        int strbuflen = str.length ();
+        if ( strbuflen == 0 )
+            return;
+        if ( (strbuflen % 4) > 0 )
+            strbuflen += 4 - (strbuflen % 4);
+        unsigned char* strbuf = new unsigned char [ strbuflen ];
+        memset ( strbuf, 0, strbuflen );
+        memcpy ( strbuf, str.c_str(), str.length() );
+
+        // Encode it!
+        char output [ 4 ];
+        v[1] = 0;
+        for ( int i = 0; i < strbuflen; i += 4 )
+        {
+            v[0] = *(unsigned int*)&strbuf[i];
+
+            encodeXtea ( &v[0], &w[0], &k[0] );
+            *(unsigned int*)&output[0] = w[0];
+            out->append ( output, 4 );
+
+            v[1] = w[1];
+        }
+        *(unsigned int*)&output[0] = v[1];
+        out->append ( output, 4 );
+
+        delete [] strbuf;
+    }
+
+    void TeaDecode ( const SString& str, const SString& key, SString* out )
+    {
+        unsigned int v[2];
+        unsigned int w[2];
+        unsigned int k[4];
+        unsigned int keybuffer [ 4 ];
+
+        // Clear buffers
+        memset ( v, 0, sizeof(v) );
+        memset ( w, 0, sizeof(w) );
+        memset ( k, 0, sizeof(k) );
+        memset ( keybuffer, 0, sizeof(keybuffer) );
+        out->clear ();
+
+        // Count the number of passes that we need
+        int numBlocks = str.length() / 4;
+        int numPasses = numBlocks - 1;
+
+        if ( numPasses <= 0 )
+            return;
+
+        // Process the key
+        int len = key.length ();
+        if ( len > 16 )
+            len = 16;
+        memcpy ( keybuffer, key.c_str(), len );
+        for ( int i = 0; i < 4; ++i )
+            k[i] = keybuffer[i];
+
+        // Create a temporary buffer to store the result
+        unsigned char* buffer = new unsigned char [ numPasses * 4 + 4 ];
+        memset ( buffer, 0, numPasses * 4 + 4 );
+
+        // Decode it!
+        const char* p = str.c_str();
+        v[1] = *(unsigned int*)&p[numPasses * 4];
+        for ( int i = 0; i < numPasses; ++i )
+        {
+            v[0] = *(unsigned int*)&p[(numPasses-i-1)*4];
+            decodeXtea ( &v[0], &w[0], &k[0] );
+            *(unsigned int*)&buffer[(numPasses-i-1)*4] = w[0];
+            v[1] = w[1];
+        }
+
+        out->assign ( (char *)buffer, numPasses*4 );
+        delete [] buffer;
+    }
 }

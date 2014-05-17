@@ -37,10 +37,19 @@ CObjectSA::CObjectSA(CObjectSAInterface * objectInterface)
     this->SetInterface(objectInterface);
     m_ucAlpha = 255;
 
-    CheckForGangTag ();
+    // Setup some flags
+    this->BeingDeleted = FALSE;
+    this->DoNotRemoveFromGame = FALSE;
+
+    if ( m_pInterface )
+    {
+        ResetScale ();
+        CheckForGangTag ();
+        m_pInterface->bStreamingDontDelete = true;
+    }
 }
 
-CObjectSA::CObjectSA( DWORD dwModel, bool bBreakable )
+CObjectSA::CObjectSA( DWORD dwModel, bool bBreakingDisabled )
 {
     DEBUG_TRACE("CObjectSA::CObjectSA( DWORD dwModel )");
 
@@ -143,11 +152,16 @@ CObjectSA::CObjectSA( DWORD dwModel, bool bBreakable )
         this->BeingDeleted = FALSE;
         this->DoNotRemoveFromGame = FALSE;
         MemPutFast < BYTE > ( dwObjectPtr + 316, 6 );
-        if ( !bBreakable )
+        if ( bBreakingDisabled )
         {
             // Set our immunities
-            // Sum of all flags checked @ CPhysical__CanPhysicalBeDamaged 
-            MemPutFast < int > ( dwObjectPtr + 64, 0x00BC0000 );
+            // Sum of all flags checked @ CPhysical__CanPhysicalBeDamaged
+            CObjectSAInterface* pObjectSAInterface = GetObjectInterface();
+            pObjectSAInterface->bBulletProof = true;
+            pObjectSAInterface->bFireProof = true;
+            pObjectSAInterface->bCollisionProof = true;
+            pObjectSAInterface->bMeeleProof = true;
+            pObjectSAInterface->bExplosionProof = true;
         }
         m_pInterface->bStreamingDontDelete = true;
     }
@@ -164,6 +178,7 @@ CObjectSA::CObjectSA( DWORD dwModel, bool bBreakable )
 
     if ( m_pInterface )
     {
+        ResetScale ();
         CheckForGangTag ();
     }
 
@@ -230,39 +245,54 @@ void CObjectSA::Explode()
 
 void CObjectSA::Break ()
 {
-    // Works only if health is 0
     DWORD dwFunc = 0x5A0D90;
     DWORD dwThis = (DWORD) GetInterface ();
 
-    _asm
-    {
-        mov     ecx, dwThis
-        call    dwFunc
-    }
-}
+    float fHitVelocity = 1000.0f; // has no direct influence, but should be high enough to trigger the break (effect)
 
-void CObjectSA::SetScale( float faScale )
-{
-    DWORD dwFunc = 0x4745E0;
-    DWORD dwThis = (DWORD)this->GetInterface();
     _asm
     {
-        push    faScale
+        push    32h // most cases: between 30 and 37
+        push    0 // colliding entity. To ignore it, we can set it to 0
+        push    0B73710h // vecCollisionImpactVelocity
+        push    0 // vecCollisionLastPos
+        push    fHitVelocity
         mov     ecx, dwThis
         call    dwFunc
     }
 
-//  *(FLOAT *)(this->GetInterface() + 348) = fScale;
+    if ( IsGlass () )
+    {
+        float fX = 0.0f;
+        float fY = 0.0f;
+        float fZ = 0.0f;
+        dwFunc = FUNC_CGlass_WindowRespondsToCollision;
+
+        _asm
+        {
+            push 0
+            push fZ
+            push fY
+            push fX
+            push 0
+            push 0
+            push 0
+            push fHitVelocity
+            push dwThis
+            call dwFunc
+            add esp, 24h
+        }
+    }
 }
 
 void CObjectSA::SetHealth ( float fHealth )
 {
-    MemPutFast < float > ( (DWORD)this->GetInterface () + 340, fHealth );
+    static_cast < CObjectSAInterface* > ( this->GetInterface () )->fHealth = fHealth;
 }
 
 float CObjectSA::GetHealth ( void )
 {
-    return *(float *)( (DWORD)this->GetInterface () + 340 );
+    return static_cast < CObjectSAInterface* > ( this->GetInterface () )->fHealth;
 }
 
 void CObjectSA::SetModelIndex ( unsigned long ulModel )
@@ -292,4 +322,37 @@ void CObjectSA::CheckForGangTag ( )
             m_bIsAGangTag = false; 
             break;
     }
+}
+
+bool CObjectSA::IsGlass ()
+{
+    DWORD dwFunc = 0x46A760;
+    DWORD dwThis = (DWORD) GetInterface ();
+    bool bResult;
+
+    _asm
+    {
+        push dwThis
+        call dwFunc
+        mov bResult, al
+        add esp, 4
+    }
+    return bResult;
+}
+
+void CObjectSA::SetScale ( float fX, float fY, float fZ )
+{
+    m_vecScale = CVector ( fX, fY, fZ );
+    GetObjectInterface ()->bUpdateScale = true;
+    GetObjectInterface ()->fScale = Max( fX, Max( fY, fZ ) );
+}
+
+CVector* CObjectSA::GetScale ( )
+{
+    return &m_vecScale;
+}
+
+void CObjectSA::ResetScale ( )
+{
+    SetScale ( 1.0f, 1.0f, 1.0f );
 }

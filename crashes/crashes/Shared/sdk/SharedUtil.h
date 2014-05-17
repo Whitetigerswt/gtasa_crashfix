@@ -58,8 +58,17 @@ typedef float               FLOAT;      //  32
 #include <string.h>
 #include <string>
 #include <stdarg.h>
+
+// Vendor
+#ifndef _
+#define _ //Use a dummy localisation define for modules that don't need it
+#endif
+
 #include "SString.h"
 #include "WString.h"
+
+#define _E(code) SString(" [%s]",code)
+
 #include "SharedUtil.Map.h"
 #if defined(SHARED_UTIL_WITH_HASH_MAP) || defined(SHARED_UTIL_WITH_FAST_HASH_MAP)
     #include "SharedUtil.HashMap.h"
@@ -76,7 +85,9 @@ typedef float               FLOAT;      //  32
 #include "SharedUtil.Math.h"
 #include "SharedUtil.ClassIdent.h"
 #include "SharedUtil.Hash.h"
-#include "SharedUtil.SysInfo.h"
+#if defined(SHARED_UTIL_WITH_SYS_INFO)
+    #include "SharedUtil.SysInfo.h"
+#endif
 #include "SharedUtil.Profiling.h"
 #include "SharedUtil.Logging.h"
 #include "CFastList.h"

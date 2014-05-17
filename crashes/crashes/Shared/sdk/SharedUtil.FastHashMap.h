@@ -10,6 +10,10 @@
 *
 *****************************************************************************/
 
+#if WITH_ALLOC_TRACKING
+    #define CFastHashMap std::CMap
+#else
+
 #ifdef WIN32
     #pragma push_macro("assert")
 #endif
@@ -20,6 +24,25 @@ using namespace google;
 #ifdef WIN32
     #pragma pop_macro("assert")
 #endif
+
+//
+// Default keys for pointers
+//
+template < class T >
+T* GetEmptyMapKey ( T** )
+{
+    return (T*)-3;
+}
+
+template < class T >
+T* GetDeletedMapKey ( T** )
+{
+    return (T*)-4;
+}
+
+unsigned int GetEmptyMapKey ( unsigned int* );
+unsigned int GetDeletedMapKey ( unsigned int* );
+
 
 namespace SharedUtil
 {
@@ -33,10 +56,16 @@ namespace SharedUtil
     class CFastHashMap : public google::dense_hash_map < K, V >
     {
     public:
+        CFastHashMap ( uint uiInitialSize )
+            : google::dense_hash_map < K, V > ( uiInitialSize )
+        {
+            this->set_empty_key ( GetEmptyMapKey ( (K*)NULL ) );
+            this->set_deleted_key ( GetDeletedMapKey ( (K*)NULL ) );
+        }
         CFastHashMap ( void )
         {
-            set_empty_key ( GetEmptyMapKey ( (K*)NULL ) );
-            set_deleted_key ( GetDeletedMapKey ( (K*)NULL ) );
+            this->set_empty_key ( GetEmptyMapKey ( (K*)NULL ) );
+            this->set_deleted_key ( GetDeletedMapKey ( (K*)NULL ) );
         }
     };
 
@@ -123,17 +152,5 @@ SString GetDeletedMapKey ( SString* )
     return SStringX ( "\xFF\xFF" );
 }
 
-//
-// Default keys for pointers
-//
-template < class T >
-T* GetEmptyMapKey ( T** )
-{
-    return (T*)-1;
-}
 
-template < class T >
-T* GetDeletedMapKey ( T** )
-{
-    return (T*)-2;
-}
+#endif  // WITH_ALLOC_TRACKING

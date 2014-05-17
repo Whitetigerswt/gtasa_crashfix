@@ -122,7 +122,7 @@ void WString::Split ( const WString& strDelim, std::vector < WString >& outResul
 
     while ( true )
     {
-        unsigned long ulPos = find ( strDelim, ulStartPoint );
+        size_t ulPos = find ( strDelim, ulStartPoint );
 
         if ( ulPos == npos || ( uiMaxAmount > 0 && uiMaxAmount <= outResult.size () + 1 ) )
         {
@@ -154,7 +154,7 @@ bool WString::Split ( const WString& strDelim, WString* pstrLeft, WString* pstrR
 
     assert ( iIndex );
     bool bFromEnd = iIndex < 0;
-    unsigned long ulPos;
+    size_t ulPos;
     if ( !bFromEnd )
     {
         ulPos = 0;
@@ -388,28 +388,28 @@ WString WString::Left ( int iCount ) const
 // Right most number of characters
 WString WString::Right ( int iCount ) const
 {
-    return SubStr ( length () - iCount, iCount );
+    return SubStr ( (int)length () - iCount, iCount );
 }
 
 
 bool WString::EndsWith ( const WString& strOther ) const
 {
-    return Right ( strOther.length () ) == strOther;
+    return Right ( (int)strOther.length () ) == strOther;
 }
 
 bool WString::EndsWithI ( const WString& strOther ) const
 {
-    return wcsicmp ( Right ( strOther.length () ), strOther ) == 0;
+    return wcsicmp ( Right ( (int)strOther.length () ), strOther ) == 0;
 }
 
 bool WString::BeginsWith ( const WString& strOther ) const
 {
-    return Left ( strOther.length () ) == strOther;
+    return Left ( (int)strOther.length () ) == strOther;
 }
 
 bool WString::BeginsWithI ( const WString& strOther ) const
 {
-    return wcsicmp ( Left ( strOther.length () ), strOther ) == 0;
+    return wcsicmp ( Left ( (int)strOther.length () ), strOther ) == 0;
 }
 
 // Static function
@@ -432,55 +432,12 @@ void WString::AssignLeft ( const wchar_t* szOther, uint uiMaxLength )
     assign ( WStringX ( szOther ).Left ( uiMaxLength ) );
 }
 
-
-//
-// To/From char string
-//
-SString WString::ToAnsi ( void ) const
+WString::WString ( const char* szText )
 {
-    const wchar_t* pszW = c_str ();
-
-    uint cCharacters = wcslen(pszW)+1;
-    // Determine number of bytes to be allocated for ANSI string. An
-    // ANSI string can have at most 2 bytes per character (for Double
-    // Byte Character Strings.)
-    uint cbAnsi = cCharacters*2;
-
-    // Use of the OLE allocator is not required because the resultant
-    // ANSI  string will never be passed to another COM component. You
-    // can use your own allocator.
-    char* pData = (char*)alloca ( cbAnsi );
-
-    // Convert to ANSI.
-#ifdef WIN32
-    if (0 == WideCharToMultiByte(CP_ACP, 0, pszW, cCharacters, pData, cbAnsi, NULL, NULL))
-#else
-    size_t ret = wcstombs ( pData, pszW, cbAnsi );
-    if ( ret == 0 || ret == (size_t)-1 )
-#endif
-    {
-        return "";
-    }
-    return pData;
+    *this = FromUTF8( szText );
 }
 
-void WString::FromAnsi ( const char* szSrc )
+SString WString::ToAnsi ( void ) const
 {
-    uint cCharacters = strlen ( szSrc ) + 1 ;
-    uint cbUnicode = cCharacters * 4;
-    wchar_t* Dest = (wchar_t*)alloca ( cbUnicode );
-
-#ifdef WIN32
-    if ( MultiByteToWideChar ( CP_ACP, 0, szSrc, -1, Dest, (int)cbUnicode ) == 0 )
-#else
-    size_t ret = mbstowcs ( Dest, szSrc, cCharacters );
-    if ( ret == 0 || ret == (size_t)-1 )
-#endif
-    {
-        clear();
-    }
-    else
-    {
-        *this = Dest;
-    }
+    return ToUTF8( *this );
 }

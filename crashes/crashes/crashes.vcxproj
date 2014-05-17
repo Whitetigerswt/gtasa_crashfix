@@ -46,7 +46,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetExt>.asi</TargetExt>
-    <IncludePath>C:\Users\My PC\Documents\Visual Studio 2010\Projects\crashes\crashes;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Dropbox\Whitetigers projects\C++\crashes\crashes\Shared\sdk;D:\Dropbox\Whitetigers projects\C++\crashes\crashes\multiplayer_sa;D:\Dropbox\Whitetigers projects\C++\crashes\crashes\sdk;C:\Users\My PC\Documents\Visual Studio 2010\Projects\crashes\crashes;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

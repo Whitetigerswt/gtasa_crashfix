@@ -22,6 +22,7 @@ CBaseModelInfoSAInterface** ppModelInfo = (CBaseModelInfoSAInterface**) ARRAY_Mo
 std::map < unsigned short, int > CModelInfoSA::ms_RestreamTxdIDMap;
 std::map < DWORD, float > CModelInfoSA::ms_ModelDefaultLodDistanceMap;
 std::set < uint > CModelInfoSA::ms_ReplacedColModels;
+std::map < DWORD, BYTE > CModelInfoSA::ms_ModelDefaultAlphaTransparencyMap;
 
 CModelInfoSA::CModelInfoSA ( void )
 {
@@ -795,6 +796,57 @@ void CModelInfoSA::RemoveRef ( bool bRemoveExtraGTARef )
     }
 }
 
+void CModelInfoSA::SetAlphaTransparencyEnabled ( BOOL bEnabled )
+{
+    m_pInterface = ppModelInfo [ m_dwModelID ];
+    if(m_pInterface)
+    {
+        if ( !MapContains ( ms_ModelDefaultAlphaTransparencyMap, m_dwModelID ) )
+        {
+            MapSet ( ms_ModelDefaultAlphaTransparencyMap, m_dwModelID, (BYTE)(m_pInterface->bAlphaTransparency) );
+        }
+        m_pInterface->bAlphaTransparency = bEnabled;
+    }
+}
+
+bool CModelInfoSA::IsAlphaTransparencyEnabled ()
+{
+    m_pInterface = ppModelInfo [ m_dwModelID ];
+    if(m_pInterface)
+    {
+        return m_pInterface->bAlphaTransparency;
+    }
+    return false;
+}
+
+void CModelInfoSA::StaticResetAlphaTransparencies ()
+{
+    for ( std::map < DWORD, BYTE >::const_iterator iter = ms_ModelDefaultAlphaTransparencyMap.begin (); iter != ms_ModelDefaultAlphaTransparencyMap.end (); iter++ )
+    {
+        CBaseModelInfoSAInterface* pInterface = ppModelInfo [ iter->first ];
+        if ( pInterface )
+        {
+            pInterface->bAlphaTransparency = iter->second;
+        }
+    }
+
+    ms_ModelDefaultAlphaTransparencyMap.clear ();
+}
+
+void CModelInfoSA::ResetAlphaTransparency ()
+{
+    m_pInterface = ppModelInfo [ m_dwModelID ];
+    if(m_pInterface)
+    {
+        BYTE* pbEnabled = MapFind ( ms_ModelDefaultAlphaTransparencyMap, m_dwModelID );
+        if ( pbEnabled )
+        {
+            m_pInterface->bAlphaTransparency = *pbEnabled;
+            MapRemove ( ms_ModelDefaultAlphaTransparencyMap, m_dwModelID );
+        }
+    }
+}
+
 short CModelInfoSA::GetAvailableVehicleMod ( unsigned short usUpgrade )
 {
     short sreturn = -1;
@@ -903,7 +955,7 @@ void CModelInfoSA::SetCustomModel ( RpClump* pClump )
         {
             pGame->GetRenderWare ()->ReplaceVehicleModel ( pClump, static_cast < unsigned short > ( m_dwModelID ) );
         }
-        else if ( m_dwModelID >= 331 && m_dwModelID <= 369 )
+        else if ( ( m_dwModelID >= 331 && m_dwModelID <= 369 ) || m_dwModelID == 372 )
         {
             // We are a weapon.
             pGame->GetRenderWare ()->ReplaceWeaponModel ( pClump, static_cast < unsigned short > ( m_dwModelID ) );
@@ -1171,4 +1223,114 @@ skip:
 void CModelInfoSA::StaticSetHooks ( void )
 {
     HookInstall( HOOKPOS_CFileLoader_LoadCollisionFile_Mid, (DWORD)HOOK_CFileLoader_LoadCollisionFile_Mid, HOOKSIZE_CFileLoader_LoadCollisionFile_Mid );
+}
+
+// Recursive RwFrame children searching function
+void CModelInfoSA::RwSetSupportedUpgrades ( RwFrame * parent, DWORD dwModel ) 
+{
+    for( RwFrame* ret = parent->child ; ret != NULL ; ret = ret->next )
+    {
+        // recurse into the child
+        if ( ret->child != NULL ) {
+            RwSetSupportedUpgrades ( ret, dwModel );
+        }
+        SString strName = ret->szName;
+        // Spoiler
+        if ( strName == "ug_bonnet" )
+        {
+            m_ModelSupportedUpgrades.m_bBonnet = true;
+        }
+        else if ( strName == "ug_bonnet_left" )
+        {
+            m_ModelSupportedUpgrades.m_bBonnet_Left = true;
+        }
+        else if ( strName == "ug_bonnet_left_dam" )
+        {
+            m_ModelSupportedUpgrades.m_bBonnet_Left_dam = true;
+        }
+        else if ( strName == "ug_bonnet_right" )
+        {
+            m_ModelSupportedUpgrades.m_bBonnet_Right = true;
+        }
+        else if ( strName == "ug_bonnet_right_dam" )
+        {
+            m_ModelSupportedUpgrades.m_bBonnet_Right_dam = true;
+        }
+        // Spoiler
+        else if ( strName == "ug_spoiler" )
+        {
+            m_ModelSupportedUpgrades.m_bSpoiler = true;
+        }
+        else if ( strName == "ug_spoiler_dam" )
+        {
+            m_ModelSupportedUpgrades.m_bSpoiler_dam = true;
+        }
+        // Bonnet
+        else if ( strName == "ug_lights" )
+        {
+            m_ModelSupportedUpgrades.m_bLamps = true;
+        }
+        else if ( strName == "ug_lights_dam" )
+        {
+            m_ModelSupportedUpgrades.m_bLamps_dam = true;
+        }
+        // Roof
+        else if ( strName == "ug_roof" )
+        {
+            m_ModelSupportedUpgrades.m_bRoof = true;
+        }
+        // Side Skirt
+        else if ( strName == "ug_wing_right" )
+        {
+            m_ModelSupportedUpgrades.m_bSideSkirt_Right = true;
+        }
+        // Side Skirt
+        else if ( strName == "ug_wing_left" )
+        {
+            m_ModelSupportedUpgrades.m_bSideSkirt_Left = true;
+        }
+        // Exhaust
+        else if ( strName == "exhaust_ok" )
+        {
+            m_ModelSupportedUpgrades.m_bExhaust = true;
+        }
+        // Front bullbars
+        else if ( strName == "ug_frontbullbar" )
+        {
+            m_ModelSupportedUpgrades.m_bFrontBullbars = true;
+        }
+        // rear bullbars
+        else if ( strName == "ug_backbullbar" )
+        {
+            m_ModelSupportedUpgrades.m_bRearBullbars = true;
+        }
+        // Front bumper
+        else if ( strName == "bump_front_dummy" )
+        {
+            m_ModelSupportedUpgrades.m_bFrontBumper = true;
+        }
+        // Rear bumper
+        else if ( strName == "bump_rear_dummy" )
+        {   
+            m_ModelSupportedUpgrades.m_bRearBumper = true;
+        }
+        // Rear bumper
+        else if ( strName == "misc_c" )
+        {   
+            m_ModelSupportedUpgrades.m_bMisc = true;
+        }
+    }
+}
+
+void CModelInfoSA::InitialiseSupportedUpgrades ( RpClump * pClump )
+{
+    m_ModelSupportedUpgrades.Reset ( );
+    RwFrame * pFrame = RpGetFrame ( pClump );
+    RwSetSupportedUpgrades ( pFrame, m_dwModelID );
+    m_ModelSupportedUpgrades.m_bInitialised = true;
+}
+
+void CModelInfoSA::ResetSupportedUpgrades ( void )
+{
+    m_ModelSupportedUpgrades.Reset ( );
 }

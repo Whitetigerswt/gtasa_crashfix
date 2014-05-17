@@ -38,6 +38,7 @@ public:
     typedef typename std::pair < uint, T >  MapTypePair;
     typedef typename std::map < T, uint >   InfoType;
 
+    uint                uiRevision;         // Incremented every time the ordered map changes
     uint                uiNextFrontIndex;   // Next (decrementing) index to use as a map key for items added to the front
     uint                uiNextBackIndex;    // Next (incrementing) index to use as a map key for items added to the back
     MapType             orderedMap;         // Ordered map of items
@@ -45,12 +46,24 @@ public:
 
 
     CFastList ( void )
-        : uiNextFrontIndex ( UINT_MAX / 2 - 1 )
+        : uiRevision ( 1 )
+        , uiNextFrontIndex ( UINT_MAX / 2 - 1 )
         , uiNextBackIndex ( UINT_MAX / 2 )
     {
         // T must be a pointer
         void* ptr = (T)NULL;
         ptr = NULL;
+    }
+
+    const T& front( void ) const
+    {
+        return orderedMap.begin()->second;
+    }
+
+    void pop_front( void )
+    {
+        T item = front();
+        remove( item );
     }
 
     void push_front ( const T& item )
@@ -61,6 +74,7 @@ public:
         dassert ( orderedMap.find ( uiNextFrontIndex ) == orderedMap.end () );
         // Optimized insert at the map beginning
         orderedMap.insert ( orderedMap.begin (), MapTypePair ( uiNextFrontIndex, item ) );
+        uiRevision++;
         SetItemIndex ( item, uiNextFrontIndex );
         uiNextFrontIndex--;
     }
@@ -73,6 +87,7 @@ public:
         dassert ( orderedMap.find ( uiNextBackIndex ) == orderedMap.end () );
         // Optimized insert at the map end
         orderedMap.insert ( orderedMap.end (), MapTypePair ( uiNextBackIndex, item ) );
+        uiRevision++;
         SetItemIndex ( item, uiNextBackIndex );
         uiNextBackIndex++;
     }
@@ -95,6 +110,7 @@ public:
     void clear ( void )
     {
         orderedMap.clear ();
+        uiRevision++;
         infoMap.clear ();
         uiNextFrontIndex = UINT_MAX / 2 - 1;
         uiNextBackIndex = UINT_MAX / 2;
@@ -108,8 +124,14 @@ public:
             dassert ( it != orderedMap.end () );
             dassert ( it->second == item );
             orderedMap.erase ( it );
+            uiRevision++;
             RemoveItemIndex ( item );
         }
+    }
+
+    uint GetRevision ( void ) const
+    {
+        return uiRevision;
     }
 
 protected:
@@ -182,7 +204,7 @@ public:
         bool operator!= ( const Iterator& other ) const             { return iter != other.iter; }
         void operator++ ( void )                                    { ++iter; }
         void operator++ ( int )                                     { iter++; }
-        T& operator* ( void ) const                                 { return iter->second; }
+        const T& operator* ( void ) const                           { return iter->second; }
         operator ConstIterator ( void ) const                       { return ConstIterator( iter ); }
     };
 
@@ -212,7 +234,7 @@ public:
         bool operator!= ( const ReverseIterator& other ) const      { return iter != other.iter; }
         void operator++ ( void )                                    { ++iter; }
         void operator++ ( int )                                     { iter++; }
-        T& operator* ( void ) const                                 { return iter->second; }
+        const T& operator* ( void ) const                           { return iter->second; }
         operator ConstReverseIterator ( void ) const                { return ConstReverseIterator( iter ); }
     };
 
@@ -236,6 +258,7 @@ public:
     {
         RemoveItemIndex ( *iter );
         orderedMap.erase ( iter.iter++ );
+        uiRevision++;
         return iter;
     }
 };
@@ -249,6 +272,7 @@ bool ListContains ( const CFastList < T* >& itemList, const U& item )
     return itemList.contains ( item );
 }
 
+// Remove all occurrences of item from itemList (There should never be more than one anyway)
 template < class T, class U >
 void ListRemove ( CFastList < T* >& itemList, const U& item )
 {

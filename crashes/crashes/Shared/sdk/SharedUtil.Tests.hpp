@@ -311,6 +311,7 @@ void SharedUtil_File_Tests ( void )
             { "file:///blah\\/",  "//fleeeb/",    "file:\\\\blah\\fleeeb\\" },
             { "fil:e///blah\\/",  "//fleeeb/",    "fil:e\\blah\\fleeeb\\" },
             { "fi/le:///blah\\/",  "//fleeeb/",    "fi\\le:\\blah\\fleeeb\\" },
+            { "c:///blah\\/",      "//fleeeb/",    "c:\\blah\\fleeeb\\" },
         TEST_END
     }
 
@@ -642,4 +643,105 @@ void SharedUtil_String_Tests ( void )
         assert ( strTemp2 == "defDEF 456" );
         assert ( strTemp3 == "ghiGHI 789" );
     }
+
+    // Escaping URL arguments
+    {
+        TEST_FUNCTION
+            SStringX strInputA( (const char*)a, sizeof( a ) );
+            SString strEscaped = EscapeURLArgument( strInputA );
+            SString strUnescaped = UnescapeString ( strEscaped, '%' );
+            assert ( strEscaped == result );
+            assert ( strInputA == strUnescaped );
+        TEST_VARS
+            const uchar a[5];
+            const char* result;
+        TEST_DATA
+            { {0x00, 0x10, 0x20, 0x21, 0x22},       "%00%10%20%21%22" },
+            { {0x7F, 0x80, 0x81, 0xFE, 0xFF},       "%7F%80%81%FE%FF" },
+        TEST_END
+    }
+
+    {
+        TEST_FUNCTION
+            SStringX strInputA( a );
+            SString strEscaped = EscapeURLArgument( strInputA );
+            SString strUnescaped = UnescapeString ( strEscaped, '%' );
+            assert ( strEscaped == result );
+            assert ( strInputA == strUnescaped );
+        TEST_VARS
+            const char* a;
+            const char* result;
+        TEST_DATA
+            { "!*'();:@",           "%21%2A%27%28%29%3B%3A%40" },
+            { "&=+$,/?#",           "%26%3D%2B%24%2C%2F%3F%23" },
+            { "[] \"%<>\\",         "%5B%5D%20%22%25%3C%3E%5C" },
+            { "^`{|}",              "%5E%60%7B%7C%7D" },
+            { "AZaz09-_.~",         "AZaz09-_.~" },
+        TEST_END
+    }
+
+    // RemoveColorCodes
+    {
+        TEST_FUNCTION
+            SString strRemoved = RemoveColorCodes( a );
+            assert ( strRemoved == result );
+        TEST_VARS
+            const char* a;
+            const char* result;
+        TEST_DATA
+            { "aa #0f0F34 bb",                          "aa  bb" },
+            { "aa #0f0F34#AABBBB bb",                   "aa  bb" },
+            { "aa #0f0F3G#AABBBB bb",                   "aa #0f0F3G bb" },
+            { "aa #0f0F34#AABBB bb",                    "aa #AABBB bb" },
+            { "#0f0F34#AABBB1",                         "" },
+            { "#0f0F34 x #AABBB1",                      " x " },
+            { "#0f0F34#0f0F34 x #AABBB1#AABBB1",        " x " },
+            { "#123456#12345G#123456#12345G",           "#12345G#12345G" },
+            { "#123456#12345#123456#125G",              "#12345#125G" },
+            { "##123456#125G##123456#12345",            "##125G##12345" },
+        TEST_END
+    }
+
+    // RemoveColorCodesInPlaceW
+    {
+        TEST_FUNCTION
+            WString wstrString = a;
+            RemoveColorCodesInPlaceW( wstrString );
+            assert ( wstrString == result );
+        TEST_VARS
+            const wchar_t* a;
+            const wchar_t* result;
+        TEST_DATA
+            { L"aa #0f0F34 bb",                          L"aa  bb" },
+            { L"aa #0f0F34#AABBBB bb",                   L"aa  bb" },
+            { L"aa #0f0F3G#AABBBB bb",                   L"aa #0f0F3G bb" },
+            { L"aa #0f0F34#AABBB bb",                    L"aa #AABBB bb" },
+            { L"#0f0F34#AABBB1",                         L"" },
+            { L"#0f0F34 x #AABBB1",                      L" x " },
+            { L"#0f0F34#0f0F34 x #AABBB1#AABBB1",        L" x " },
+            { L"#123456#12345G#123456#12345G",           L"#12345G#12345G" },
+            { L"#123456#12345#123456#125G",              L"#12345#125G" },
+            { L"##123456#125G##123456#12345",            L"##125G##12345" },
+        TEST_END
+    }
+
+    // ConvertHexStringToData/ConvertDataToHexString
+    {
+        TEST_FUNCTION
+            char buffer[256];
+            uint length = a.length() / 2;
+            ConvertHexStringToData( a, buffer, length );
+            SString strResult = ConvertDataToHexString( buffer, length );
+            assert ( strResult == b );
+        TEST_VARS
+            const SString a;
+            const char* b;
+        TEST_DATA
+            { "66B9139D8C424BE2BCF224706B48FEB8", "66B9139D8C424BE2BCF224706B48FEB8" },
+            { "E7C7253C74275F2DC2DC8C6828816C18301636949369F3bad87666C81E71B309", "E7C7253C74275F2DC2DC8C6828816C18301636949369F3BAD87666C81E71B309" },
+            { "61", "61" },
+            { "\x01""A""\x1F\x80""BC""\xFE\xFF", "0A00BC00" },
+        TEST_END
+    }
+
 }

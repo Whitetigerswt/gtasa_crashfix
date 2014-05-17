@@ -184,6 +184,20 @@ void _declspec(naked) HOOK_FixClimbBug2 () {
 	}
 }
 
+/*
+DWORD ClimbConstructorRet = 0x04039B2;
+void _declspec(naked) HOOK_ClimbConstructor () { 
+
+	_asm pushad
+	lastClimbed = GetTickCount() + 10000;
+	_asm {
+		popad
+		push -1
+		jmp ClimbConstructorRet
+	}
+
+}*/
+
 void InitHooks_Fixes ()
 {
 	HookInstall ( HOOKPOS_GetFxQuality, (DWORD)HOOK_GetFxQuality, 5 );
@@ -192,4 +206,5 @@ void InitHooks_Fixes ()
 	EZHookInstall ( FixClimbBug );
 	EZHookInstall ( FixClimbBug2 );
 	HookInstall( SECOND_HOOKPOS_FixClimbBug, (DWORD)HOOK_FixClimbBug, 5);
+	//HookInstall( 0x67A110, (DWORD)HOOK_ClimbConstructor, 7);
 }

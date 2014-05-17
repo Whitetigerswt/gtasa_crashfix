@@ -21,6 +21,7 @@ namespace SharedUtil
 
     // Forbid use of GetTickCount
     #define GetTickCount GetTickCount_has_been_replaced_with_GetTickCount32
+    #define GetTickCount64 GetTickCount64_wont_work_on_XP_you_IDIOT
 
     //
     // Retrieves the number of milliseconds that have elapsed since some arbitrary point in time.
@@ -114,32 +115,104 @@ namespace SharedUtil
             m_bUseModuleTickCount = bUseModuleTickCount;
         }
 
+        void SetUseModuleTickCount ( bool bUseModuleTickCount )
+        {
+            m_bUseModuleTickCount = bUseModuleTickCount;
+        }
+
         void Reset ( void )
         {
             m_llUpdateTime = DoGetTickCount ();
-            m_llElapsedTime = 0;
+            m_ullElapsedTime = 0;
         }
 
-        long long Get ( void )
+        unsigned long long Get ( void )
         {
             long long llTime = DoGetTickCount ();
-            m_llElapsedTime += Min ( m_llMaxIncrement, llTime - m_llUpdateTime );
+            m_ullElapsedTime += Clamp ( 0LL, llTime - m_llUpdateTime, m_llMaxIncrement );
             m_llUpdateTime = llTime;
-            return m_llElapsedTime;
+            return m_ullElapsedTime;
         }
 
     protected:
-        CElapsedTime ( const CElapsedTime& );       // Not implemented
 
         long long DoGetTickCount ( void )
         {
             return m_bUseModuleTickCount ? GetModuleTickCount64 () : GetTickCount64_ ();
         }
 
-        long long   m_llUpdateTime;
-        long long   m_llElapsedTime;
-        long long   m_llMaxIncrement;
-        bool        m_bUseModuleTickCount;
+        long long           m_llUpdateTime;
+        unsigned long long  m_ullElapsedTime;
+        long long           m_llMaxIncrement;
+        bool                m_bUseModuleTickCount;
+    };
+
+
+    //
+    // Like CElapsedTime except it is not as accurate.
+    // Has a lot better Get() performance than CElapsedTime as counting is done in another thread.
+    //
+    class CElapsedTimeApprox
+    {
+    public:
+
+        CElapsedTimeApprox( void )
+        {
+            m_bInitialized = false;
+            m_uiMaxIncrement = INT_MAX;
+            m_pucCounterValue = NULL;
+            m_ppIntervalCounter = NULL;
+            m_ucUpdateCount = 0;
+            m_uiElapsedTime = 0;
+    #ifndef SHARED_UTIL_MANUAL_TIMER_INITIALIZATION
+            StaticInitialize( this );
+    #endif
+        }
+
+        ~CElapsedTimeApprox( void )
+        {
+            if ( m_ppIntervalCounter && *m_ppIntervalCounter )
+                if ( (*m_ppIntervalCounter)->Release() == 0 )
+                    *m_ppIntervalCounter = NULL;
+        }
+
+        void SetMaxIncrement( uint uiMaxIncrement )
+        {
+            m_uiMaxIncrement = uiMaxIncrement;
+        }
+
+        void Reset( void )
+        {
+            dassert( m_bInitialized );
+            m_ucUpdateCount = DoGetCount();
+            m_uiElapsedTime = 0;
+        }
+
+        // This will wrap if gap between calls is over 25.5 seconds
+        uint Get( void )
+        {
+            dassert( m_bInitialized );
+            uchar ucCount = DoGetCount();
+            uint uiTimeDelta = ( ucCount - m_ucUpdateCount ) * 100U;
+            m_ucUpdateCount = ucCount;
+            m_uiElapsedTime += Min( uiTimeDelta, m_uiMaxIncrement );
+            return m_uiElapsedTime;
+        }
+
+        static void StaticInitialize( CElapsedTimeApprox* pTimer );
+    protected:
+
+        uchar DoGetCount( void )
+        {
+            return *m_pucCounterValue;
+        }
+
+        bool            m_bInitialized;
+        uchar           m_ucUpdateCount;
+        uint            m_uiMaxIncrement;
+        uint            m_uiElapsedTime;
+        uchar*          m_pucCounterValue;
+        CRefCountable** m_ppIntervalCounter;
     };
 
 

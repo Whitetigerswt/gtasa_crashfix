@@ -46,6 +46,14 @@ namespace SharedUtil
     bool ShellExecuteNonBlocking ( const SString& strAction, const SString& strFile, const SString& strParameters = "", const SString& strDirectory = "", int nShowCmd = 1 );
 
     //
+    // Output a UTF8 encoded messagebox
+    // Used in the Win32 Client only
+    //
+    #ifdef _WINDOWS_
+        int MessageBoxUTF8 ( HWND hWnd, SString lpText, SString lpCaption, UINT uType );
+    #endif 
+
+    //
     // Get startup directory as saved in the registry by the launcher
     // Used in the Win32 Client only
     //
@@ -56,6 +64,9 @@ namespace SharedUtil
     // into an absolute MTASA path i.e. "C:\Program Files\MTA San Andreas\MTA\file.dat"
     //
     SString CalcMTASAPath ( const SString& strPath );
+
+    // Returns true if current process is GTA (i.e not MTA process)
+    bool IsGTAProcess ( void );
 
     //
     // Run ShellExecute with these parameters after exit
@@ -71,20 +82,26 @@ namespace SharedUtil
     //
     // For tracking results of new features
     //
-    void            AddReportLog                    ( uint uiId, const SString& strText );
+    void            AddReportLog                    ( uint uiId, const SString& strText, uint uiAmountLimit = UINT_MAX );
     void            SetReportLogContents            ( const SString& strText );
     SString         GetReportLogContents            ( void );
+    void            WriteDebugEvent                 ( const SString& strText );
+    void            WriteErrorEvent                 ( const SString& strText );
+    void            BeginEventLog                   ( void );
+    void            CycleEventLog                   ( void );
 
     void            SetApplicationSetting           ( const SString& strPath, const SString& strName, const SString& strValue );
     SString         GetApplicationSetting           ( const SString& strPath, const SString& strName );
     bool            RemoveApplicationSettingKey     ( const SString& strPath );
     void            SetApplicationSettingInt        ( const SString& strPath, const SString& strName, int iValue );
     int             GetApplicationSettingInt        ( const SString& strPath, const SString& strName );
+    int             IncApplicationSettingInt        ( const SString& strPath, const SString& strName );
 
     void            SetApplicationSetting           ( const SString& strName, const SString& strValue );
     SString         GetApplicationSetting           ( const SString& strName );
     void            SetApplicationSettingInt        ( const SString& strName, int iValue );
     int             GetApplicationSettingInt        ( const SString& strName );
+    int             IncApplicationSettingInt        ( const SString& strName );
 
     void            WatchDogReset                   ( void );
     bool            WatchDogIsSectionOpen           ( const SString& str );
@@ -95,12 +112,26 @@ namespace SharedUtil
     void            WatchDogCompletedSection        ( const SString& str );
     bool            WatchDogWasUncleanStop          ( void );
     void            WatchDogSetUncleanStop          ( bool bOn );
+    bool            WatchDogWasLastRunCrash         ( void );
+    void            WatchDogSetLastRunCrash         ( bool bOn );
 
-    void            BrowseToSolution                ( const SString& strType, bool bAskQuestion = false, bool bTerminateProcess = false, bool bDoOnExit = false, const SString& strMessageBoxMessage = "" );
-    void            ProcessPendingBrowseToSolution  ( void );
+    // BrowseToSolution flags
+    enum
+    {
+        EXIT_GAME_FIRST         = 1,        // Exit from game before showing message - Useful only if game has started and has control of the screen
+        ASK_GO_ONLINE           = 2,        // Ask user if he wants to go online (otherwise, always go online)
+        TERMINATE_IF_YES        = 4,        // What to do at the end. Only relevant if EXIT_GAME_FIRST is not used
+        TERMINATE_IF_NO         = 8,        //    ''
+        TERMINATE_IF_YES_OR_NO  = TERMINATE_IF_YES | TERMINATE_IF_NO,
+        TERMINATE_PROCESS       = TERMINATE_IF_YES_OR_NO,
+        SHOW_MESSAGE_ONLY       = 16,        // Just show message without going online
+    };
+    void            BrowseToSolution                ( const SString& strType, int uiFlags = 0, const SString& strMessageBoxMessage = "", const SString& strErrorCode = "" );
+    bool            ProcessPendingBrowseToSolution  ( void );
     void            ClearPendingBrowseToSolution    ( void );
 
     SString         GetSystemErrorMessage           ( uint uiErrorCode, bool bRemoveNewlines = true, bool bPrependCode = true );
+    void            SetClipboardText                ( const SString& strText );
 
 #endif
 
@@ -112,24 +143,40 @@ namespace SharedUtil
     // See implementation for details
     bool            IsMainThread                    ( void );
 
+    // CPU stats
+    struct SThreadCPUTimes
+    {
+        uint uiProcessorNumber;
+        float fUserPercent;
+        float fKernelPercent;
+        float fTotalCPUPercent;
+    };
+    struct SThreadCPUTimesStore : SThreadCPUTimes
+    {
+        SThreadCPUTimesStore( void ) { ZERO_POD_STRUCT( this ); }
+        uint64 ullPrevCPUMeasureTimeMs;
+        uint64 ullPrevUserTimeUs;
+        uint64 ullPrevKernelTimeUs;
+    };
     DWORD           _GetCurrentProcessorNumber      ( void );
+    void            GetThreadCPUTimes               ( uint64& outUserTime, uint64& outKernelTime );
+    void            UpdateThreadCPUTimes            ( SThreadCPUTimesStore& store, long long* pllTickCount = NULL );
 
-    SString         EscapeString                    ( const SString& strText, const SString& strDisallowedChars, char cSpecialChar = '#' );
+    SString         EscapeString                    ( const SString& strText, const SString& strDisallowedChars, char cSpecialChar = '#', uchar ucLowerLimit = 0, uchar ucUpperLimit = 255 );
     SString         UnescapeString                  ( const SString& strText, char cSpecialChar = '#' );
+    SString         EscapeURLArgument               ( const SString& strText );
 
     SString         ExpandEnvString                 ( const SString& strInput );
 
-    //
-    // Return true if supplied string adheres to the new version format
-    //
-    bool IsValidVersionString ( const SString& strVersion );
+    // Version string things
+    bool        IsValidVersionString                ( const SString& strVersion );
+    SString     ExtractVersionStringBuildNumber     ( const SString& strVersion );
+    SString     ConformVersionStringToBaseVersion   ( const SString& strVersion, const SString& strBaseVersion );
 
     //
     // Try to make a path relative to the 'resources/' directory
     //
     SString ConformResourcePath ( const char* szRes, bool bConvertToUnixPathSep = false );
-
-    SString GenerateNickname ( void );
 
     //
     // string stuff
@@ -143,6 +190,11 @@ namespace SharedUtil
 
     int  GetUTF8Confidence (const unsigned char* input, int len);
 
+    bool IsUTF8BOM( const void* pData, uint uiLength );
+
+    // Buffer identification
+    bool IsLuaCompiledScript( const void* pData, uint uiLength );
+    bool IsLuaEncryptedScript( const void* pData, uint uiLength );
 
     //
     // Some templates
@@ -243,29 +295,6 @@ namespace SharedUtil
     // std:: container helpers
     //
 
-    template < class TL, class T >
-    void ListRemove ( TL& itemList, const T& item )
-    {
-        typename TL ::iterator it = itemList.begin ();
-        for ( ; it != itemList.end () ; ++it )
-            if ( item == *it )
-            {
-                itemList.erase ( it );
-                break;
-            }
-    }
-
-    template < class TL, class T >
-    bool ListContains ( const TL& itemList, const T& item );
-
-    // Add item if it does not aleady exist in itemList
-    template < class TL, class T >
-    void ListAddUnique ( TL& itemList, const T& item )
-    {
-        if ( !ListContains ( itemList, item ) )
-            itemList.push_back ( item );
-    }
-
     // Returns true if the item is in the itemList
     template < class TL, class T >
     bool ListContains ( const TL& itemList, const T& item )
@@ -277,12 +306,33 @@ namespace SharedUtil
         return false;
     }
 
+    // Add item if it does not aleady exist in itemList
+    template < class TL, class T >
+    void ListAddUnique ( TL& itemList, const T& item )
+    {
+        if ( !ListContains ( itemList, item ) )
+            itemList.push_back ( item );
+    }
+
 
     //
     // std::list helpers
     //
 
     // Remove first occurrence of item from itemList
+    template < class T >
+    void ListRemoveFirst ( std::list < T >& itemList, const T& item )
+    {
+        typename std::list < T >::iterator it = itemList.begin ();
+        for ( ; it != itemList.end () ; ++it )
+            if ( item == *it )
+            {
+                itemList.erase ( it );
+                break;
+            }
+    }
+
+    // Remove all occurrences of item from itemList
     template < class T >
     void ListRemove ( std::list < T >& itemList, const T& item )
     {
@@ -294,11 +344,38 @@ namespace SharedUtil
     // std::vector helpers
     //
 
+    // Remove first occurrence of item from itemList
+    template < class T >
+    void ListRemoveFirst ( std::vector < T >& itemList, const T& item )
+    {
+        typename std::vector < T >::iterator it = itemList.begin ();
+        for ( ; it != itemList.end () ; ++it )
+            if ( item == *it )
+            {
+                itemList.erase ( it );
+                break;
+            }
+    }
+
+    // Remove all occurrences of item from itemList
+    template < class T >
+    void ListRemove ( std::vector < T >& itemList, const T& item )
+    {
+        typename std::vector < T >::iterator it = itemList.begin ();
+        while ( it != itemList.end () )
+        {
+            if ( item == *it )
+                it = itemList.erase ( it );
+            else
+                ++it;
+        }
+    }
+
     // Remove item at index from itemList
     template < class T >
     void ListRemoveIndex ( std::vector < T >& itemList, uint index )
     {
-        if ( index >=0 && index < itemList.size () )
+        if ( index < itemList.size () )
             itemList.erase ( itemList.begin () + index );
     }
 
@@ -318,6 +395,24 @@ namespace SharedUtil
         itemList.reserve ( prevSize );
     }
 
+
+    //
+    // std::deque helpers
+    //
+
+    // Remove all occurrences of item from itemList
+    template < class T >
+    void ListRemove ( std::deque < T >& itemList, const T& item )
+    {
+        typename std::deque < T >::iterator it = itemList.begin ();
+        while ( it != itemList.end () )
+        {
+            if ( item == *it )
+                it = itemList.erase ( it );
+            else
+                ++it;
+        }
+    }
 
 
     //
@@ -472,8 +567,10 @@ namespace SharedUtil
     //
     // string stuff
     //
-    std::string RemoveColorCode ( const char* szString );
-
+    SString RemoveColorCodes            ( const char* szString );
+    void    RemoveColorCodesInPlaceW    ( WString& strText );
+    bool    IsColorCode                 ( const char* szColorCode );
+    bool    IsColorCodeW                ( const wchar_t* wszColorCode );
 
     //
     // ID 'stack'
@@ -721,6 +818,7 @@ namespace SharedUtil
             m_List.pop_front ();
         }
 
+        // Remove all occurrences of item
         void remove ( const T& item )
         {
             if ( Contains ( item ) )
@@ -803,6 +901,21 @@ namespace SharedUtil
     bool ListContains ( const CMappedArray < U >& itemList, const T& item )
     {
         return itemList.Contains ( item );
+    }
+
+
+    // Remove all occurrences of item from itemList
+    template < class U, class T >
+    void ListRemove ( CMappedList < U >& itemList, const T& item )
+    {
+        itemList.remove ( item );
+    }
+
+    // Remove all occurrences of item from itemList
+    template < class U, class T >
+    void ListRemove ( CMappedArray < U >& itemList, const T& item )
+    {
+        itemList.remove ( item );
     }
 
 
@@ -1076,7 +1189,7 @@ namespace SharedUtil
     // tolower / toupper
     // Implemented here so it can be inlined.
     //
-    static const unsigned char ms_ucTolowerTab [ 256 ] = {
+    static const char ms_ucTolowerTab [ 256 ] = {
         '\x00', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x07',
         '\x08', '\x09', '\x0a', '\x0b', '\x0c', '\x0d', '\x0e', '\x0f',
         '\x10', '\x11', '\x12', '\x13', '\x14', '\x15', '\x16', '\x17',
@@ -1110,7 +1223,7 @@ namespace SharedUtil
         '\xf0', '\xf1', '\xf2', '\xf3', '\xf4', '\xf5', '\xf6', '\xf7',
         '\xf8', '\xf9', '\xfa', '\xfb', '\xfc', '\xfd', '\xfe', '\xff'
     };
-    static const unsigned char ms_ucToupperTab [ 256 ] = {
+    static const char ms_ucToupperTab [ 256 ] = {
         '\x00', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x07', 
         '\x08', '\x09', '\x0a', '\x0b', '\x0c', '\x0d', '\x0e', '\x0f', 
         '\x10', '\x11', '\x12', '\x13', '\x14', '\x15', '\x16', '\x17', 
@@ -1285,6 +1398,47 @@ namespace SharedUtil
     }
 
 
+    //
+    // Fast wildcard matching (case insensitive)
+    //
+    inline
+    bool WildcardMatchI(const char *wild, const char *string) {
+      // Written by Jack Handy - jakkhandy@hotmail.com
+      assert ( wild && string );
+
+      const char *cp = NULL, *mp = NULL;
+
+      while ((*string) && (*wild != '*')) {
+        if ( (SharedUtil::tolower(*wild) != SharedUtil::tolower(*string) ) && (*wild != '?')) {
+          return 0;
+        }
+        wild++;
+        string++;
+      }
+
+      while (*string) {
+        if (*wild == '*') {
+          if (!*++wild) {
+            return 1;
+          }
+          mp = wild;
+          cp = string+1;
+        } else if ( (SharedUtil::tolower(*wild) == SharedUtil::tolower(*string) ) || (*wild == '?')) {
+          wild++;
+          string++;
+        } else {
+          wild = mp;
+          string = cp++;
+        }
+      }
+
+      while (*wild == '*') {
+        wild++;
+      }
+      return !*wild;
+    }
+
+
     ///////////////////////////////////////////////////////////////
     //
     // CFilterMap
@@ -1319,7 +1473,7 @@ namespace SharedUtil
                 const SString& part = partList [ i ];
                 char cType = part.Left ( 1 )[0];
 
-                SString strRest = part.Right ( part.length () - 1 );
+                SString strRest = part.Right ( (int)part.length () - 1 );
                 strRest = strRest.Replace ( "{", "" ).Replace ( "}", "" );
 
                 SString strFrom, strTo;
@@ -1366,6 +1520,40 @@ namespace SharedUtil
 
     ///////////////////////////////////////////////////////////////
     //
+    // CRefCountableST
+    //
+    // Reference counting base class
+    //
+    ///////////////////////////////////////////////////////////////
+    class CRefCountableST
+    {
+        int                     m_iRefCount;
+    protected:
+        virtual ~CRefCountableST  ( void ) {}
+    public:
+
+        CRefCountableST ( void ) : m_iRefCount ( 1 ) {}
+
+        void AddRef ( void )
+        {
+            ++m_iRefCount;
+        }
+
+        void Release ( void )
+        {
+            assert ( m_iRefCount > 0 );
+            bool bLastRef = --m_iRefCount == 0;
+
+            if ( !bLastRef )
+                return;
+
+            delete this;
+        }
+    };
+
+
+    ///////////////////////////////////////////////////////////////
+    //
     // CRefCountable
     //
     // Thread safe reference counting base class
@@ -1390,17 +1578,16 @@ namespace SharedUtil
             m_pCS->Unlock ();
         }
 
-        void Release ( void )
+        int Release ( void )
         {
             m_pCS->Lock ();
             assert ( m_iRefCount > 0 );
-            bool bLastRef = --m_iRefCount == 0;
+            int iNewRefCount = --m_iRefCount;
             m_pCS->Unlock ();
 
-            if ( !bLastRef )
-                return;
-
-            delete this;
+            if ( iNewRefCount == 0 )
+                delete this;
+            return iNewRefCount;
         }
     };
 
@@ -1410,20 +1597,20 @@ namespace SharedUtil
     // Fixed size array
     //
     // Replacement for e.g.  int var[100]
-    // Checks bounds during debug
+    // Checks bounds
     //
     template < class T, int SIZE >
     struct SFixedArray
     {
         T& operator[] ( uint uiIndex )
         {
-            dassert ( uiIndex < SIZE );
+            assert ( uiIndex < SIZE );
             return data [ uiIndex ];
         }
 
         const T& operator[] ( uint uiIndex ) const
         {
-            dassert ( uiIndex < SIZE );
+            assert ( uiIndex < SIZE );
             return data [ uiIndex ];
         }
 
@@ -1471,112 +1658,100 @@ namespace SharedUtil
 
 
     //
-    // Smart pointer with reference count.
-    // Based on code from:
-    // http://www.codeproject.com/Articles/15351/Implementing-a-simple-smart-pointer-in-c
+    // Pointer with reference count.
     //
-    class RC
-    {
-        private:
-        int count; // Reference count
-
-        public:
-        RC ( void ) : count ( 0 ) {}
-        void AddRef()
-        {
-            // Increment the reference count
-            count++;
-        }
-
-        int Release()
-        {
-            // Decrement the reference count and
-            // return the reference count.
-            return --count;
-        }
-    };
-
-    template < typename T > class SP
+    template < typename T >
+    class CRefedPointer : public CRefCountable
     {
     private:
-        T*    pData;       // pointer
-        RC* reference; // Reference count
+        T*  pData;      // Target
 
+        virtual ~CRefedPointer( void )
+        {
+            SAFE_DELETE( pData );
+        }
+        CRefedPointer ( const CRefedPointer < T >& other );
+        CRefedPointer < T >& operator = ( const CRefedPointer < T >& other );
     public:
-        SP() : pData(0), reference(0) 
+
+        CRefedPointer( void )
         {
-            // Create a new reference 
-            reference = new RC();
-            // Increment the reference count
-            reference->AddRef();
+            pData = new T();
         }
 
-        SP(T* pValue) : pData(pValue), reference(0)
-        {
-            // Create a new reference 
-            reference = new RC();
-            // Increment the reference count
-            reference->AddRef();
-        }
-
-        SP(const SP<T>& sp) : pData(sp.pData), reference(sp.reference)
-        {
-            // Copy constructor
-            // Copy the data and reference pointer
-            // and increment the reference count
-            reference->AddRef();
-        }
-
-        ~SP()
-        {
-            // Destructor
-            // Decrement the reference count
-            // if reference become zero delete the data
-            if(reference->Release() == 0)
-            {
-                delete pData;
-                delete reference;
-            }
-        }
-
-        T& operator* ()
-        {
-            return *pData;
-        }
-
-        T* operator-> ()
+        T* GetData( void )
         {
             return pData;
         }
-        
-        SP<T>& operator = (const SP<T>& sp)
+    };
+
+    //
+    // Smart pointer with reference count.
+    //
+    template < typename T >
+    class CAutoRefedPointer
+    {
+    private:
+        CRefedPointer < T >* pPointer;
+    public:
+        CAutoRefedPointer()
+        {
+            pPointer = new CRefedPointer < T >();
+        }
+
+        CAutoRefedPointer ( const CAutoRefedPointer < T >& other )
+        {
+            pPointer = other.pPointer;
+            pPointer->AddRef();
+        }
+
+        ~CAutoRefedPointer()
+        {
+            pPointer->Release();
+        }
+
+        CAutoRefedPointer < T >& operator = ( const CAutoRefedPointer < T >& other )
         {
             // Assignment operator
-            if (this != &sp) // Avoid self assignment
+            if ( this != &other ) // Avoid self assignment
             {
-                T*  pDataOld =  pData;
-                RC* referenceOld = reference;
+                CRefedPointer < T >* pOldPointer = pPointer;
 
                 // Copy the data and reference pointer
                 // and increment the reference count
-                pData = sp.pData;
-                reference = sp.reference;
-                reference->AddRef();
+                pPointer = other.pPointer;
+                pPointer->AddRef();
 
                 // Decrement the old reference count
-                // if reference become zero delete the old data
-                if(referenceOld->Release() == 0)
-                {
-                    delete pDataOld;
-                    delete referenceOld;
-                }
+                pOldPointer->Release();
             }
             return *this;
         }
+
+        T* operator->( void )
+        {
+            return pPointer->GetData();
+        }
+
+        const T* operator->( void ) const
+        {
+            return pPointer->GetData();
+        }
     };
-
-
 };
 
 using namespace SharedUtil;
+
+//
+// For checking MTA library module versions
+//
+#ifdef WIN32
+    #define MTAEXPORT extern "C" __declspec(dllexport)
+#else
+    #define MTAEXPORT extern "C"
+#endif
+
+typedef void (FUNC_GetMtaVersion)( char* pBuffer, uint uiMaxSize );
+
+MTAEXPORT void GetLibMtaVersion( char* pBuffer, uint uiMaxSize );
 

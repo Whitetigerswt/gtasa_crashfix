@@ -28,6 +28,7 @@
 #define     CLASS_CPad                      0xB73458    // ##SA##
 #define     CLASS_CGarages                  0x96C048    // ##SA##
 #define     CLASS_CFx                       0xa9ae00    // ##SA##
+#define     CLASS_CFxManager                0xA9AE80    // ##SA##
 #define     CLASS_CMenuManager              0xBA6748    // ##SA##
 
 #define     CLASS_RwCamera                  0xB6F97C
@@ -130,6 +131,7 @@ public:
     inline CAERadioTrackManager     * GetAERadioTrackManager()  { DEBUG_TRACE("CAERadioTrackManager * GetAERadioTrackManager()");return m_pCAERadioTrackManager; };
     inline CAudioEngine             * GetAudioEngine()          { DEBUG_TRACE("CAudio     * GetAudioEngine()");return m_pAudioEngine; };
     inline CAudioEngine             * GetAudio()                { DEBUG_TRACE("CAudio     * GetAudioEngine()");return m_pAudioEngine; };
+    inline CAudioContainer          * GetAudioContainer()       { DEBUG_TRACE("CAudio     * GetAudioContainer()");return m_pAudioContainer; };
     inline CMenuManager             * GetMenuManager()          { DEBUG_TRACE("CMenuManager         * GetMenuManager()");return m_pMenuManager; };
     inline CText                    * GetText()                 { DEBUG_TRACE("CText                    * GetText()");return m_pText; };
     inline CStats                   * GetStats()                { DEBUG_TRACE("CStats                   * GetStats()");return m_pStats; };
@@ -149,9 +151,11 @@ public:
     inline CKeyGen                  * GetKeyGen ()               { return m_pKeyGen; }
     inline CRopes                   * GetRopes ()                { return m_pRopes; }
     inline CFx                      * GetFx ()                   { return m_pFx; }
+    inline CFxManager               * GetFxManager ()            { return m_pFxManager; }
     inline CWaterManager            * GetWaterManager ()         { return m_pWaterManager; }
     inline CWeaponStatManager       * GetWeaponStatManager()     { return m_pWeaponStatsManager; }
     inline CPointLights             * GetPointLights ()          { return m_pPointLights; }
+    CRenderWareSA*                  GetRenderWareSA()            { return m_pRenderWare; }
 
     CWeaponInfo             * GetWeaponInfo(eWeaponType weapon,eWeaponSkill skill=WEAPONSKILL_STD);
     CModelInfo              * GetModelInfo( DWORD dwModelID );
@@ -212,7 +216,6 @@ public:
     int&                    GetCheckStatus          ( void )            { return m_iCheckStatus; }
 
 
-    void                    SetAsyncLoadingFromSettings     ( bool bSettingsDontUse, bool bSettingsEnabled );
     void                    SetAsyncLoadingFromScript       ( bool bScriptEnabled, bool bScriptForced );
     void                    SuspendASyncLoading             ( bool bSuspend );
     bool                    IsASyncLoadingEnabled           ( bool bIgnoreSuspend = false );
@@ -224,6 +227,7 @@ public:
     CWeaponStat *           CreateWeaponStat                ( eWeaponType weaponType, eWeaponSkill weaponSkill );
     void                    FlushPendingRestreamIPL         ( void );
     void                    ResetModelLodDistances          ( void );
+    void                    ResetAlphaTransparencies         ( void );
     void                    DisableVSync                    ( void );
 
     void                    OnPedContextChange              ( CPed* pPedContext );
@@ -233,10 +237,11 @@ public:
 
     void                    SetPreWeaponFireHandler         ( PreWeaponFireHandler* pPreWeaponFireHandler )     { m_pPreWeaponFireHandler = pPreWeaponFireHandler; }
     void                    SetPostWeaponFireHandler        ( PostWeaponFireHandler* pPostWeaponFireHandler )   { m_pPostWeaponFireHandler = pPostWeaponFireHandler; }
+    void                    SetTaskSimpleBeHitHandler       ( TaskSimpleBeHitHandler* pTaskSimpleBeHitHandler ) { m_pTaskSimpleBeHitHandler = pTaskSimpleBeHitHandler; }
 
     PreWeaponFireHandler*   m_pPreWeaponFireHandler;
     PostWeaponFireHandler*  m_pPostWeaponFireHandler;
-
+    TaskSimpleBeHitHandler* m_pTaskSimpleBeHitHandler;
 private:
     CPools                  * m_pPools;
     CPlayerInfo             * m_pPlayerInfo;
@@ -267,6 +272,7 @@ private:
     CKeyGen                 * m_pKeyGen;
     CRopes                  * m_pRopes;
     CFx                     * m_pFx;
+    CFxManager              * m_pFxManager;
     CWaterManager           * m_pWaterManager;
     CWeaponStatManager      * m_pWeaponStatsManager;
     CPointLights            * m_pPointLights;
@@ -275,6 +281,7 @@ private:
     CTheCarGenerators           * m_pTheCarGenerators;
     CAERadioTrackManager        * m_pCAERadioTrackManager;
     CAudioEngine                * m_pAudioEngine;
+    CAudioContainer             * m_pAudioContainer;
     CMenuManager                * m_pMenuManager;
     CText                       * m_pText;
     CStats                      * m_pStats;
@@ -288,8 +295,6 @@ private:
     CControllerConfigManager    * m_pControllerConfigManager;
 
     eGameVersion            m_eGameVersion;
-    bool                    m_bAsyncSettingsDontUse;
-    bool                    m_bAsyncSettingsEnabled;
     bool                    m_bAsyncScriptEnabled;
     bool                    m_bAsyncScriptForced;
     bool                    m_bASyncLoadingSuspended;

@@ -16,7 +16,9 @@
 #include <stdarg.h>
 
 #ifdef WIN32
+#ifndef va_copy
     #define va_copy(dest, orig) (dest) = (orig)
+#endif
 #endif
 
 //
@@ -36,11 +38,7 @@ public:
         : std::wstring ( szText ? szText : L"" )
     { }
 
-    WString ( const char* szText )
-        : std::wstring ()
-    {
-        FromAnsi ( szText );
-    }
+    WString ( const char* szText );
 
     explicit WString ( const wchar_t* szFormat, ... )
         : std::wstring ()
@@ -87,6 +85,10 @@ public:
     {
         return std::wstring ( *this ) + other;
     }
+	WString operator+( const WString& other ) const
+    {
+        return std::wstring ( *this ) + other;
+    }
 
     // Assignment  
     operator const wchar_t*() const    { return c_str (); }        // Auto assign to const wchar_t* without using c_str()
@@ -121,7 +123,6 @@ public:
     void            AssignLeft          ( const wchar_t* szOther, uint uiMaxLength );
 
     SString         ToAnsi              ( void ) const;
-    void            FromAnsi            ( const char* szSrc );
 };
 
 

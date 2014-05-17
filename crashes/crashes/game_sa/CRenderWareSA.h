@@ -32,10 +32,13 @@ public:
     ZERO_ON_NEW
                         CRenderWareSA               ( enum eGameVersion version );
                         ~CRenderWareSA              ( void );
-
+    void                Initialize                  ( void );
     bool                ModelInfoTXDLoadTextures    ( SReplacementTextures* pReplacementTextures, const SString& szFilename, bool bFilteringEnabled );
     bool                ModelInfoTXDAddTextures     ( SReplacementTextures* pReplacementTextures, ushort usModelId );
     void                ModelInfoTXDRemoveTextures  ( SReplacementTextures* pReplacementTextures );
+    void                ClothesAddReplacementTxd    ( char* pFileData, ushort usFileId );
+    void                ClothesRemoveReplacementTxd ( char* pFileData );
+    bool                HasClothesReplacementChanged( void );
 
     // Reads and parses a TXD file specified by a path (szTXD)
     RwTexDictionary *   ReadTXD                     ( const char *szTXD );
@@ -99,8 +102,8 @@ public:
     void                GetModelTextureNames        ( std::vector < SString >& outNameList, ushort usModelID );
     void                GetTxdTextures              ( std::vector < RwTexture* >& outTextureList, ushort usTxdId );
     static void         GetTxdTextures              ( std::vector < RwTexture* >& outTextureList, RwTexDictionary* pTXD );
-    const SString&      GetTextureName              ( CD3DDUMMY* pD3DData );
-    void                SetRenderingClientEntity    ( CClientEntityBase* pClientEntity, int iTypeMask );
+    const char*         GetTextureName              ( CD3DDUMMY* pD3DData );
+    void                SetRenderingClientEntity    ( CClientEntityBase* pClientEntity, ushort usModelId, int iTypeMask );
     SShaderItemLayers*  GetAppliedShaderForD3DData  ( CD3DDUMMY* pD3DData );
     void                AppendAdditiveMatch         ( CSHADERDUMMY* pShaderData, CClientEntityBase* pClientEntity, const char* strTextureNameMatch, float fShaderPriority, bool bShaderLayered, int iTypeMask, uint uiShaderCreateTime, bool bShaderUsesVertexShader, bool bAppendLayers );
     void                AppendSubtractiveMatch      ( CSHADERDUMMY* pShaderData, CClientEntityBase* pClientEntity, const char* strTextureNameMatch );
@@ -113,7 +116,9 @@ public:
     CModelTexturesInfo* GetModelTexturesInfo        ( ushort usModelId );
 
     RwFrame *           GetFrameFromName            ( RpClump * pRoot, SString strName );
-private:
+
+    static void         StaticSetHooks              ( void );
+    static void         StaticSetClothesReplacingHooks ( void );
     static void         RwTexDictionaryRemoveTexture( RwTexDictionary* pTXD, RwTexture* pTex );
     static bool         RwTexDictionaryContainsTexture( RwTexDictionary* pTXD, RwTexture* pTex );
     static short        CTxdStore_GetTxdRefcount    ( unsigned short usTxdID );
@@ -124,6 +129,8 @@ private:
     void                StreamingRemovedTxd         ( ushort usTxdId );
     void                ScriptAddedTxd              ( RwTexDictionary* pTxd );
     void                ScriptRemovedTexture        ( RwTexture* pTex );
+    void                SpecialAddedTexture         ( RwTexture* texture, const char* szTextureName = NULL );
+    void                SpecialRemovedTexture       ( RwTexture* texture );
     STexInfo*           CreateTexInfo               ( const STexTag& texTag, const SString& strTextureName, CD3DDUMMY* pD3DData );
     void                DestroyTexInfo              ( STexInfo* pTexInfo );
 
@@ -132,17 +139,25 @@ private:
 
     void                OnTextureStreamIn           ( STexInfo* pTexInfo );
     void                OnTextureStreamOut          ( STexInfo* pTexInfo );
+    void                DisableGTAVertexShadersForAWhile    ( void );
+    void                UpdateDisableGTAVertexShadersTimer  ( void );
+    void                SetGTAVertexShadersEnabled          ( bool bEnable );
 
     // Watched world textures
     std::multimap < ushort, STexInfo* >     m_TexInfoMap;
     CFastHashMap < CD3DDUMMY*, STexInfo* >  m_D3DDataTexInfoMap;
     CClientEntityBase*                      m_pRenderingClientEntity;
+    ushort                                  m_usRenderingEntityModelId;
     int                                     m_iRenderingEntityType;
     CMatchChannelManager*                   m_pMatchChannelManager;
     int                                     m_uiReplacementRequestCounter;
     int                                     m_uiReplacementMatchCounter;
     int                                     m_uiNumReplacementRequests;
     int                                     m_uiNumReplacementMatches;
+    CElapsedTime                            m_GTAVertexShadersDisabledTimer;
+    bool                                    m_bGTAVertexShadersEnabled;
+    std::set < RwTexture* >                 m_SpecialTextures;
+    static int                              ms_iRenderingType;
 };
 
 #endif
