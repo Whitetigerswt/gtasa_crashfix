@@ -232,7 +232,7 @@ static void WINAPI Load() {
 		MemSet ( (void*)0x6D29CB, 0x90, 5 );
 
 		// END 2
-
+		
 		// Disable CTaskSimplePlayerOnFoot::PlayIdleAnimations (ret 4)
 		MemPut < BYTE > ( 0x6872C0, 0xC2 );
 		MemPut < BYTE > ( 0x6872C1, 0x04 );
@@ -345,9 +345,14 @@ static void WINAPI Load() {
 		MemPut < BYTE > ( 0x0449C50, 0xC3 );
 		MemPut < BYTE > ( 0x0449D10, 0xC3 );
 
-		MemPut < BYTE > ( 0x0706AB0, 0xC3 );
+		// Pass on loading priority to dependent models
+		MemPut < BYTE > ( 0x040892A, 0x53 );
+		MemPut < BYTE > ( 0x040892B, 0x90 );
 
-		// HACK to prevent RealTimeShadowManager crash
+
+		if(GetModuleHandle("shadows.asi") == NULL) 
+			MemPut < BYTE > ( 0x0706AB0, 0xC3 ); // HACK to prevent RealTimeShadowManager crash
+
 		// 00542483     EB 0B          JMP SHORT gta_sa_u.00542490
 		MemPut < BYTE > ( 0x542483, 0xEB );
 
@@ -361,7 +366,7 @@ static void WINAPI Load() {
 
 		// Fix vehicle back lights both using light state 3 (SA bug)
 		MemPut < BYTE > ( 0x6E1D4F, 2 );
-
+		
 		// Disable setting players on fire when they're riding burning bmx's (see #4573)
 		MemPut < BYTE > ( 0x53A982, 0xEB );
 
