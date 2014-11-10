@@ -1,6 +1,9 @@
-﻿Build started 11/9/2014 11:47:03 PM.
+﻿Build started 11/10/2014 11:26:05 AM.
      1>Project "C:\Users\Whitetiger\Desktop\Coding projects\GitHub\gtasa_crashfix\crashes\crashes\crashes.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\Whitetiger\Desktop\Coding projects\GitHub\gtasa_crashfix\crashes\crashes\/sdk/" /Zi /nologo /W3 /WX- /MP /O2 /Oi /Oy /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _USRDLL /D CRASHES_EXPORTS /D _CRT_SECURE_NO_WARNINGS /D _USING_V110_SDK71_ /D _WINDLL /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt CrashHandler.cpp quickload.cpp
+         CrashHandler.cpp
+         quickload.cpp
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\Whitetiger\Desktop\Coding projects\GitHub\gtasa_crashfix\crashes\crashes\/sdk/" /Zi /nologo /W3 /WX- /MP /O2 /Oi /Oy /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _USRDLL /D CRASHES_EXPORTS /D _CRT_SECURE_NO_WARNINGS /D _USING_V110_SDK71_ /D _WINDLL /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt dllmain.cpp
          dllmain.cpp
        Link:
@@ -21,4 +24,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.24
+Time Elapsed 00:00:02.81
