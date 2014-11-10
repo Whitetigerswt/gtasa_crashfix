@@ -198,6 +198,54 @@ void _declspec(naked) HOOK_ClimbConstructor () {
 
 }*/
 
+//////////////////////////////////////////////////////////////////////////////////////////
+//
+// Fx_AddBulletImpact
+//
+// Modify bullet impact effect type
+//
+// 1 = sparks
+// 2 = sand
+// 3 = wood
+// 4 = dust
+//
+//////////////////////////////////////////////////////////////////////////////////////////
+DWORD lTicks;
+int OnMY_Fx_AddBulletImpact(int iType)
+{
+	// Limit sand or dust effect due to performance issues
+	if (iType == 2 || iType == 4)
+	{
+		if (lTicks < GetTickCount())
+			lTicks = GetTickCount() + 500;
+		else
+			iType = 1;                  // Otherwise replace with spark
+	}
+	return iType;
+}
+
+// Hook info
+#define HOOKPOS_Fx_AddBulletImpact                         0x049F3E8
+#define HOOKSIZE_Fx_AddBulletImpact                        5
+DWORD RETURN_Fx_AddBulletImpact = 0x049F3ED;
+
+void _declspec(naked) HOOK_Fx_AddBulletImpact(void)
+{
+	_asm
+	{
+		pushad
+			push    eax
+			call    OnMY_Fx_AddBulletImpact
+			mov[esp + 0], eax         // Put result temp
+			add     esp, 4 * 1
+			popad
+
+			mov     esi, [esp - 32 - 4 * 1]    // Get result temp
+			mov     eax, ds:0x0B6F03C
+			jmp     RETURN_Fx_AddBulletImpact
+	}
+}
+
 void InitHooks_Fixes ()
 {
 	HookInstall ( HOOKPOS_GetFxQuality, (DWORD)HOOK_GetFxQuality, 5 );
@@ -206,5 +254,6 @@ void InitHooks_Fixes ()
 	EZHookInstall ( FixClimbBug );
 	EZHookInstall ( FixClimbBug2 );
 	HookInstall( SECOND_HOOKPOS_FixClimbBug, (DWORD)HOOK_FixClimbBug, 5);
+	EZHookInstall(Fx_AddBulletImpact);
 	//HookInstall( 0x67A110, (DWORD)HOOK_ClimbConstructor, 7);
 }
