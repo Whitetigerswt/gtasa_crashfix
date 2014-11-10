@@ -285,8 +285,6 @@ static void WINAPI Load() {
 		// Make sure DirectInput mouse device is set non-exclusive (may not be needed?)
 		MemPut < DWORD > ( 0x7469A0, 0x909000B0 );
 
-		MemSet ( (void *)0x53C127, 0x90, 10 );
-
 		MemCpy ( (void *)0x5EFFE0, "\xC2\x18\x00\x90", 4 );
 
 		// Stop the loading of ambient traffic models and textures
