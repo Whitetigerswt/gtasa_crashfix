@@ -17,7 +17,6 @@ Requirements
 -------
 
 - GTA:SA
-- Microsoft Visual C++ 2010 Runtime Redistributable (x86): http://www.microsoft.com/en-us/download/details.aspx?id=5555
 - ASI Loader: http://www.gtagarage.com/mods/show.php?id=8321
 
 Credits
