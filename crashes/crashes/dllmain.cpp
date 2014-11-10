@@ -471,6 +471,7 @@ static void WINAPI Load() {
 	checkForUpdate();
 	
 	bool laststate = false;
+	int previousbrightness = -1;
 	while(true) {
 
 		TCHAR wintitle[50];
@@ -494,7 +495,9 @@ static void WINAPI Load() {
 				newbright = brightness;
 			}
 
-			GammaRamp.SetBrightness(NULL, newbright);
+			if(newbright != previousbrightness) GammaRamp.SetBrightness(NULL, newbright);
+
+			previousbrightness = newbright;
 
 			if(mousefix && laststate) {
 
@@ -512,8 +515,10 @@ static void WINAPI Load() {
 			}
 
 		} else {
-			GammaRamp.SetBrightness(NULL, 128);
+			if(previousbrightness != 128) GammaRamp.SetBrightness(NULL, 128);
+			previousbrightness = 128;
 			if(mousefix && !laststate) {
+
 				laststate = true;
 			}
 			continue;
