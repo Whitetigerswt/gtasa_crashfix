@@ -1,4 +1,4 @@
-﻿Build started 11/9/2014 9:47:40 PM.
+﻿Build started 11/9/2014 9:57:42 PM.
      1>Project "C:\Users\Whitetiger\Desktop\Coding projects\GitHub\gtasa_crashfix\crashes\crashes\crashes.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\Whitetiger\Desktop\Coding projects\GitHub\gtasa_crashfix\crashes\crashes\/sdk/" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _USRDLL /D CRASHES_EXPORTS /D _USING_V110_SDK71_ /D _WINDLL /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt dllmain.cpp
@@ -20,4 +20,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.97
+Time Elapsed 00:00:02.14

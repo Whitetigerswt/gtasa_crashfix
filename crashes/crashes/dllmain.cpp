@@ -327,7 +327,7 @@ static void WINAPI Load(HMODULE hModule) {
 
 		// NOP clouds
 		MemPut < BYTE > ( 0x716380, 0xC3 );
-		MemPut < BYTE > ( 0x713950, 0xC3 );
+		//MemPut < BYTE > ( 0x713950, 0xC3 );
 
 		MemPut < BYTE > ( 0x717180, 0x83 );
 		MemPut < BYTE > ( 0x717181, 0xEC );
