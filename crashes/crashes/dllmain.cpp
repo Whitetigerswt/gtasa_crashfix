@@ -21,7 +21,7 @@ CVector vecCenterOfWorld;
 
 HMODULE g_hMod = 0;
 
-static void WINAPI Load();
+static void WINAPI Load(HMODULE hModule);
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -32,7 +32,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 		g_hMod = hModule;
-		if ( CreateThread( 0, 0, (LPTHREAD_START_ROUTINE)Load, NULL, 0, 0) == NULL ) {
+		if ( CreateThread( 0, 0, (LPTHREAD_START_ROUTINE)Load, hModule, 0, 0) == NULL ) {
 			ExitProcess(GetLastError());
 			return FALSE; 
 		}
@@ -105,7 +105,7 @@ void checkForUpdate() {
 }
 
 
-static void WINAPI Load() {
+static void WINAPI Load(HMODULE hModule) {
 
 	
 
@@ -388,7 +388,15 @@ static void WINAPI Load() {
 
 	CGammaRamp GammaRamp;
 
-	ifstream ifile("crashes.cfg");
+	char module[MAX_PATH];
+	GetModuleFileName(hModule, module, sizeof(module));
+	std::string szModule(module);
+
+	std::string path = szModule.substr(0, szModule.find_last_of("\\"));
+
+	path.append("\\crashes.cfg");
+
+	ifstream ifile(path);
 	string type = "";
 	int enabled = NULL;
 
@@ -429,7 +437,7 @@ static void WINAPI Load() {
 			}
 		}
 	} else {
-		ofstream ofile("crashes.cfg");
+		ofstream ofile(path);
 		ofile << "brightness -1" << endl;
 		ofile << "mousefix 1" << endl;
 		ofile << "shadows 0" << endl;
@@ -447,7 +455,9 @@ static void WINAPI Load() {
 		brightness = -1;
 		mousefix = 1;
 
-		ofstream readfile("crashes.cfg_readme.txt");
+		path.append("_readme.txt");
+
+		ofstream readfile(path);
 		readfile << "brightness - the brightness setting can adjust your brightness at a much higher and lower rate than the regular ingame brightness, thats why it was added." << endl;
 		readfile << "if it's set to -1, it will use your ingame brightness bar to adjust your brightness, only change it from -1 if setting to the max brightness ingame is not bright enough, or you want to fine tune it more than the ingame setting can provide" << endl;
 		readfile << "this also fixes brightness not working in Windows 8" << endl << endl;
