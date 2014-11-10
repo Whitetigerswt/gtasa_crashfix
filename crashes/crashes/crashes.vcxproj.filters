@@ -39,9 +39,6 @@
     <ClInclude Include="StdInc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="log.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -72,6 +69,18 @@
     <ClInclude Include="PatternScan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CrashRpt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CrashRptProbe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CLog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CrashHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="crashes.cpp">
@@ -81,9 +90,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="multiplayer_hooksystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="memory.cpp">
@@ -99,6 +105,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fixes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CLog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CrashHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

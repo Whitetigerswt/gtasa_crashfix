@@ -17,13 +17,12 @@
 *
 *****************************************************************************/
 
-#define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
 #include <math.h>
 #include "multiplayer_hooksystem.h"
 #include "crashes.h"
 #include "memory.h"
-#include "log.h"
+#include "CLog.h"
 #include "RenderWare.h"
 #include "StdInc.h"
 #include <set>
@@ -37,11 +36,8 @@ void CPlayerPed__ProcessControl_Abort() { }
 
 void _cdecl CrashAverted ( DWORD id )
 {
-    Log * log = new Log("crashes.log");
-	char buf[256];
-	sprintf(buf, "You were saved from crash #%d!", id);
-	log->Write(buf);
-	delete log;
+    CLog log = CLog("crashes.log");
+	log.Write("You were saved from crash #%d!", id);
 }
 
 #define CRASH_AVERTED(id) \
@@ -1057,13 +1053,6 @@ void OnMY_Rtl_fopen_Post( FILE* fh, DWORD calledFrom, const char* szFilename, co
 		if(szFilename[lastIdx] == 'b' && szFilename[lastIdx-1] == '.') {
 			return;
 		}
-		Log* log = new Log("crashes.log");
-		char err[256];
-		sprintf_s(err, sizeof(err), "%s has failed to open!", szFilename);
-		
-		
-		log->Write(err);
-		delete log;
     }
 }
 
@@ -1214,11 +1203,6 @@ RwFrame* OnMY_CClumpModelInfo_GetFrameFromId_Post ( RwFrame* pFrameResult, DWORD
 
         if ( pNewFrameResult )
         {
-            Log * log = new Log("crashes.log");
-			char buf[256];
-			sprintf(buf, "Averted invalid vehicle mod crash - Called from: %d Vehicle: %d", calledFrom, pVehicle);
-			log->Write(buf);
-			delete log;
             return pNewFrameResult;
         }
     }

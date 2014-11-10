@@ -7,7 +7,6 @@
 #include "multiplayer_hooksystem.h"
 #include "Addresses.h"
 #include "PatternScan.h"
-#include "log.h"
 
 void ShowRaster_Prox();
 void StartGame_Prox();

@@ -1,21 +1,21 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <Windows.h>
 #include "crashes.h"
 //#pragma warning(disable: 4244)
 #include "CVector.h"
 #include "StdInc.h"
 #include "memory.h"
-#include "log.h"
 #include "gammaramp.h"
 #include "patcher.h"
 #include "quickload.h"
 #include "main.h"
 #include "fixes.h"
 #include "Addresses.h"
+#include "CrashHandler.h"
 #include <iostream>
 #include <fstream>
 #include <Wininet.h>
+
+using namespace std;
 
 CVector vecCenterOfWorld;
 
@@ -40,6 +40,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	case DLL_PROCESS_DETACH: 
 		CGammaRamp GammaRamp;
 		GammaRamp.SetBrightness(NULL, 128);
+		crUninstall();
 		break;
 	}
 	return TRUE;
@@ -107,8 +108,6 @@ void checkForUpdate() {
 
 static void WINAPI Load(HMODULE hModule) {
 
-	
-
 	DWORD oldProt;
 	VirtualProtect((LPVOID)0x401000, 0x4A3000, PAGE_EXECUTE_READWRITE, &oldProt);
 
@@ -122,6 +121,8 @@ static void WINAPI Load(HMODULE hModule) {
 	while(*(int*)0xB6F5F0 == 0) { 
 		Sleep(100);
 	}
+
+	CrashHandler();
 
 	if(GetModuleHandle("samp.dll") != NULL) {
 
