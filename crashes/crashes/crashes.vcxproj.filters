@@ -66,6 +66,12 @@
     <ClInclude Include="fixes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Addresses.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PatternScan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="crashes.cpp">

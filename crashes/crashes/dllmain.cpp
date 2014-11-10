@@ -12,6 +12,7 @@
 #include "quickload.h"
 #include "main.h"
 #include "fixes.h"
+#include "Addresses.h"
 #include <iostream>
 #include <fstream>
 #include <Wininet.h>

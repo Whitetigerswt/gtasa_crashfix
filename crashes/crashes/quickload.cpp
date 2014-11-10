@@ -5,6 +5,9 @@
 #include "memory.h"
 #include "quickload.h"
 #include "multiplayer_hooksystem.h"
+#include "Addresses.h"
+#include "PatternScan.h"
+#include "log.h"
 
 void ShowRaster_Prox();
 void StartGame_Prox();
@@ -25,21 +28,18 @@ int iAlreadyPatched = 2;
 DWORD GetModuleBaseAddress(char* module) {
 	return (DWORD)GetModuleHandle (module);
 }
-DWORD addr = -1;
+DWORD frame_limiter_off_addr = -1;
+DWORD frame_limiter_on_addr = -1;
 void __declspec(naked) FPSStrafeHook() {
 	_asm pushad
 
-	addr = (DWORD)GetModuleHandle("samp") + 0x65275;
-
-	if(*(BYTE*)0xBA6794 == 0) {
+	if(VAR_FRAME_LIMITER == 0) {
 		_asm popad
-		_asm jmp addr
+		_asm jmp frame_limiter_off_addr
 	}
 
-	addr = (DWORD)GetModuleHandle("samp") + 0x652A1;
-
 	_asm popad
-	_asm jmp addr
+	_asm jmp frame_limiter_on_addr
 }
 bool quickLoadPatches( )
 {
@@ -48,12 +48,10 @@ bool quickLoadPatches( )
 	DWORD dwSAMPBase = GetModuleBaseAddress("samp.dll");
 	DWORD dwConnectDelay, dwFPSSleep[4];
 
-	if(*(int*)(dwSAMPBase + 0x2AE035) == 3000) { // 0.3z R1
+	if (*(int*)(dwSAMPBase + 0x77A3) == 3000) { // 0.3z-R2
+		dwConnectDelay = dwSAMPBase + 0x77A3;
+	} else if(*(int*)(dwSAMPBase + 0x2AE035) == 3000) { // 0.3z R1
 		dwConnectDelay = dwSAMPBase + 0x2AE035;
-		dwFPSSleep[0] = dwSAMPBase + 0x6526C;
-		dwFPSSleep[1] = dwSAMPBase + 0x653E0;
-		dwFPSSleep[2] = dwSAMPBase + 0x6527A;
-		dwFPSSleep[3] = dwSAMPBase + 0x659E1;
 	} else if(*(int*)(dwSAMPBase + 0x244A7E) == 3000) { // 0.3x-R2-pre-release 2
 		dwConnectDelay = dwSAMPBase + 0x244A7E;
 	} else if(*(int*)(dwSAMPBase + 0x295074) == 3000) { // 0.3x-R2-pre-release 1
@@ -64,27 +62,33 @@ bool quickLoadPatches( )
 		dwConnectDelay = dwSAMPBase + 0x2607DC;
 	}
 
+	dwFPSSleep[0] = FindPattern("\x57\x8B\xF9\xE8\xF6\x36\xFC\xFF\x8B\xF0\xA1", "xxxx????xxx") + 0x8;
+	dwFPSSleep[1] = FindPattern("\xBA\x0A\x00\x00\x00\x2B\xD6", "xxxxxxx") + 0x7;
+	dwFPSSleep[2] = FindPattern("\xA3\x5C\xCB\xB7\x00\xA3\x58\xCB\xB7\x00", "xxxxxxxxxx");
+	dwFPSSleep[3] = FindPattern("\xBA\x80\x1A\x56\x00\xFF\xE2", "xxxxxxx") - 0x7;
+
+	frame_limiter_off_addr = dwFPSSleep[2] - 0x5;
+	frame_limiter_on_addr = dwFPSSleep[2] + 0x27;
+
+
 	DWORD oldProt;
-	VirtualProtect((LPVOID)dwConnectDelay, 4, PAGE_EXECUTE_READWRITE, &oldProt);
 	if ( dwConnectDelay != NULL ) {
+		VirtualProtect((LPVOID)dwConnectDelay, 4, PAGE_EXECUTE_READWRITE, &oldProt);
 		MemPutFast < int > ( dwConnectDelay, 0 );
 	}
 
-
-	if ( dwFPSSleep != NULL ) {
+	if ( dwFPSSleep[1] != NULL ) {
 		// Disable the 100FPS Lock
 		VirtualProtect((LPVOID)dwFPSSleep[0], 7, PAGE_EXECUTE_READWRITE, &oldProt);
 		HookInstall(dwFPSSleep[0], (DWORD)FPSStrafeHook, 7);
 
-		VirtualProtect((LPVOID)dwFPSSleep[1], 4, PAGE_EXECUTE_READWRITE, &oldProt);
-
-		MemPut <BYTE> (dwFPSSleep[1], 0x6A);
-		MemPut <BYTE> (dwFPSSleep[1] + 0x2, 0x0);
-		MemPut <BYTE> (dwFPSSleep[1] + 0x4, 0x90);
+		VirtualProtect((LPVOID)dwFPSSleep[1], 7, PAGE_EXECUTE_READWRITE, &oldProt);
+		memcpy((void*)dwFPSSleep[1], "\x90\x90\x90\x90\x90\x90\x90", 7);
 
 		VirtualProtect((LPVOID)dwFPSSleep[2], 5, PAGE_EXECUTE_READWRITE, &oldProt);
 		memcpy((void*)dwFPSSleep[2], "\x90\x90\x90\x90\x90", 5);
 
+		VirtualProtect((LPVOID)dwFPSSleep[3], 1, PAGE_EXECUTE_READWRITE, &oldProt);
 		MemPut <BYTE> (dwFPSSleep[3], 0x0);
 
 	}
