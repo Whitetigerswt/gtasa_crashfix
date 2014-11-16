@@ -8,6 +8,7 @@
 #include "Addresses.h"
 #include "PatternScan.h"
 
+
 void ShowRaster_Prox();
 void StartGame_Prox();
 void ChangeMenu_Prox();
@@ -40,6 +41,7 @@ void __declspec(naked) FPSStrafeHook() {
 	_asm popad
 	_asm jmp frame_limiter_on_addr
 }
+
 bool quickLoadPatches( )
 {
 	unsigned long dwValue;

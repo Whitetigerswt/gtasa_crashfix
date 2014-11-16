@@ -381,6 +381,7 @@ static void WINAPI Load(HMODULE hModule) {
 		// 0x: Set's the Frame Sleeping to 0 so you get more performance (sa:mp init is so far a good place ;d) .
 		*(BYTE*)0xBAB318 = 0;  *(BYTE*)0x53E94C = 0; // (from s0beit)	
 
+		InitHooks_SampCrashes();
 		
 	}
 

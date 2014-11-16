@@ -28,6 +28,7 @@
 #include <set>
 #include "game_sa/CAnimBlendAssocGroupSA.h"
 #include "game_sa/CAnimBlendAssociationSA.h"
+#include "PatternScan.h"
 
 std::set < CAnimBlendAssociationSAInterface* > ms_ValidAnimBlendAssociationMap;
 
@@ -1311,4 +1312,36 @@ void InitHooks_CrashFixHacks ()
 	EZHookInstall ( CrashFix_Misc29 );
 	EZHookInstall ( CClumpModelInfo_GetFrameFromId );
 	EZHookInstall ( Rtl_fopen );
+}
+
+DWORD SampPointerCheck1_Addr = 0;
+void _declspec(naked) HOOK_SampPointerCheck1()
+{
+	__asm
+	{
+		je jmp_back
+		cmp eax, 1000 // make sure eax is isn't a bad pointer, if it is, we'll crash
+		jl jmp_back
+
+		mov edx, [eax + 10h]
+		mov eax,SampPointerCheck1_Addr
+		add eax,5
+		jmp eax
+
+		jmp_back:
+			mov esi,SampPointerCheck1_Addr
+			add esi,14h
+			jmp esi
+	}
+}
+
+void InitHooks_SampCrashes()
+{
+	SampPointerCheck1_Addr = FindPattern("\x74\x12\x8B\x50\x10\x8B\x02", "xxxxxxx");
+
+	if (SampPointerCheck1_Addr != 0) {
+		DWORD oldProt;
+		VirtualProtect((void*)SampPointerCheck1_Addr, 5, PAGE_EXECUTE_READWRITE, &oldProt);
+		HookInstall(SampPointerCheck1_Addr, (DWORD)HOOK_SampPointerCheck1, 5);
+	}
 }

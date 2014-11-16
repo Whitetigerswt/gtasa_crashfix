@@ -124,6 +124,7 @@
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="multiplayer_hooksystem.cpp" />
     <ClCompile Include="patcher.cpp" />
+    <ClCompile Include="PatternScan.cpp" />
     <ClCompile Include="quickload.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
