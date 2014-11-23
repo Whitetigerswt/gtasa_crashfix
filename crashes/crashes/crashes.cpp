@@ -1339,7 +1339,8 @@ void InitHooks_SampCrashes()
 {
 	SampPointerCheck1_Addr = FindPattern("\x74\x12\x8B\x50\x10\x8B\x02", "xxxxxxx");
 
-	if (SampPointerCheck1_Addr != 0) {
+	if (SampPointerCheck1_Addr != 0) 
+	{
 		DWORD oldProt;
 		VirtualProtect((void*)SampPointerCheck1_Addr, 5, PAGE_EXECUTE_READWRITE, &oldProt);
 		HookInstall(SampPointerCheck1_Addr, (DWORD)HOOK_SampPointerCheck1, 5);
