@@ -1045,53 +1045,6 @@ cont:
     }
 }
 
-void OnMY_Rtl_fopen_Post( FILE* fh, DWORD calledFrom, const char* szFilename, const char* szMode )
-{
-    // Check for file open error
-    if ( !fh )
-    {
-		int lastIdx = strlen(szFilename) - 1;
-		if(szFilename[lastIdx] == 'b' && szFilename[lastIdx-1] == '.') {
-			return;
-		}
-    }
-}
-
-// Hook info
-#define HOOKPOS_Rtl_fopen_US                         0x8232D8
-#define HOOKSIZE_Rtl_fopen_US                        6
-#define HOOKPOS_Rtl_fopen_EU                         0x823318
-#define HOOKSIZE_Rtl_fopen_EU                        6
-DWORD RETURN_Rtl_fopen_US =                          0x8232DE;
-DWORD RETURN_Rtl_fopen_EU =                          0x82331E;
-DWORD RETURN_Rtl_fopen_BOTH =                        0;
-void _declspec(naked) HOOK_Rtl_fopen()
-{
-    _asm
-    {
-        push    [esp+4*3]
-        push    [esp+4*3]
-        push    [esp+4*3]
-        call inner
-        add     esp, 4*3
-
-        pushad
-        push    [esp+32+4*2]
-        push    [esp+32+4*2]
-        push    [esp+32+4*2]
-        push    eax
-        call    OnMY_Rtl_fopen_Post
-        add     esp, 4*2+4+4
-        popad
-        retn
-
-inner:
-        push    40h
-        push    [esp+0x0c] 
-        jmp     RETURN_Rtl_fopen_BOTH
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////
 // Handle CTaskComplexDieInCar::ControlSubTask ped with no vehicle
 #define HOOKPOS_CrashFix_Misc27                             0x6377FB
@@ -1311,7 +1264,6 @@ void InitHooks_CrashFixHacks ()
 	EZHookInstall ( CrashFix_Misc28 );
 	EZHookInstall ( CrashFix_Misc29 );
 	EZHookInstall ( CClumpModelInfo_GetFrameFromId );
-	EZHookInstall ( Rtl_fopen );
 }
 
 DWORD SampPointerCheck1_Addr = 0;
