@@ -57,27 +57,16 @@ bool quickLoadPatches( )
 	if (dwSAMPBase != NULL)
 	{
 
-		DWORD dwConnectDelay, dwFPSSleep[4];
+		DWORD dwFPSSleep[4];
 
-		if (*(int*)(dwSAMPBase + 0x77A3) == 3000) { // 0.3z-R2
-			dwConnectDelay = dwSAMPBase + 0x77A3;
+		while (int i = FindPattern("\x3D\xB8\x0B\x00\x00\x0F", "xxxxx"))
+		{
+			i += 0x1;
+			DWORD oldProt;
+			VirtualProtect((LPVOID)i, 4, PAGE_EXECUTE_READWRITE, &oldProt);
+			MemPutFast < int >(i, 0);
 		}
-		else if (*(int*)(dwSAMPBase + 0x2AE035) == 3000) { // 0.3z R1
-			dwConnectDelay = dwSAMPBase + 0x2AE035;
-		}
-		else if (*(int*)(dwSAMPBase + 0x244A7E) == 3000) { // 0.3x-R2-pre-release 2
-			dwConnectDelay = dwSAMPBase + 0x244A7E;
-		}
-		else if (*(int*)(dwSAMPBase + 0x295074) == 3000) { // 0.3x-R2-pre-release 1
-			dwConnectDelay = dwSAMPBase + 0x295074;
-		}
-		else if (*(int*)(dwSAMPBase + 0x2CD600) == 3000) { // 0.3x-R1-2
-			dwConnectDelay = dwSAMPBase + 0x2CD600;
-		}
-		else if (*(int*)(dwSAMPBase + 0x2607DC) == 3000) { // 0.3x
-			dwConnectDelay = dwSAMPBase + 0x2607DC;
-		}
-
+			
 		dwFPSSleep[0] = FindPattern("\x57\x8B\xF9\xE8\xF6\x36\xFC\xFF\x8B\xF0\xA1", "xxxx????xxx") + 0xA;
 		dwFPSSleep[1] = FindPattern("\xBA\x0A\x00\x00\x00\x2B\xD6", "xxxxxxx") + 0x5;
 		dwFPSSleep[2] = FindPattern("\xB8\x00\x00\x80\x3F\xA3", "xxxxxx") + 0x5;
@@ -87,11 +76,6 @@ bool quickLoadPatches( )
 		frame_limiter_on_addr = dwFPSSleep[2] - 0x9;
 
 		DWORD oldProt;
-		if (dwConnectDelay != NULL) {
-			VirtualProtect((LPVOID)dwConnectDelay, 4, PAGE_EXECUTE_READWRITE, &oldProt);
-			MemPutFast < int >(dwConnectDelay, 0);
-		}
-
 		if (dwFPSSleep[1] != NULL) {
 			// Disable the 100FPS Lock
 			VirtualProtect((LPVOID)dwFPSSleep[0], 7, PAGE_EXECUTE_READWRITE, &oldProt);
