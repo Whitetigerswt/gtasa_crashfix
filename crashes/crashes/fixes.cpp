@@ -184,6 +184,39 @@ void _declspec(naked) HOOK_FixClimbBug2 () {
 	}
 }
 
+#define HOOKPOS_FixMouseStuck 0x745423
+#define HOOKSIZE_FixMouseStuck 8
+DWORD RETURN_FixMouseStuck = 0x74542B;
+DWORD altRETURN_FixMouseStuck = 0x745433;
+
+void _declspec(naked) HOOK_FixMouseStuck()
+{
+	__asm
+	{
+		mov eax, [esp + 08h] // eax = y pos
+		mov ecx, [esp + 04h] // ecx = x pos
+
+		pushad
+	}
+
+	if (*(HWND*)0xC97C1C == GetForegroundWindow())
+	{
+		__asm
+		{
+			popad
+			jmp RETURN_FixMouseStuck
+		}
+	}
+	else
+	{
+		__asm
+		{
+			popad
+			jmp altRETURN_FixMouseStuck
+		}
+	}
+}
+
 /*
 DWORD ClimbConstructorRet = 0x04039B2;
 void _declspec(naked) HOOK_ClimbConstructor () { 
@@ -255,5 +288,6 @@ void InitHooks_Fixes ()
 	EZHookInstall ( FixClimbBug2 );
 	HookInstall( SECOND_HOOKPOS_FixClimbBug, (DWORD)HOOK_FixClimbBug, 5);
 	EZHookInstall(Fx_AddBulletImpact);
+	EZHookInstall(FixMouseStuck);
 	//HookInstall( 0x67A110, (DWORD)HOOK_ClimbConstructor, 7);
 }
