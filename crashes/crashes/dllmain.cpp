@@ -30,18 +30,26 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 {
 	switch (ul_reason_for_call)
 	{
-	case DLL_PROCESS_ATTACH:
-		g_hMod = hModule;
-		if ( CreateThread( 0, 0, (LPTHREAD_START_ROUTINE)Load, hModule, 0, 0) == NULL ) {
-			ExitProcess(GetLastError());
-			return FALSE; 
+		case DLL_PROCESS_ATTACH:
+		{
+			g_hMod = hModule;
+			HANDLE hThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)Load, hModule, 0, 0);
+			if (hThread == NULL) 
+			{
+				ExitProcess(GetLastError());
+				return FALSE;
+			}
+
+			SetThreadPriority(hThread, THREAD_PRIORITY_LOWEST);
+			break;
 		}
-		break;
-	case DLL_PROCESS_DETACH: 
-		CGammaRamp GammaRamp;
-		GammaRamp.SetBrightness(NULL, 128);
-		crUninstall();
-		break;
+		case DLL_PROCESS_DETACH:
+		{
+			CGammaRamp GammaRamp;
+			GammaRamp.SetBrightness(NULL, 128);
+			crUninstall();
+			break;
+		}
 	}
 	return TRUE;
 }
@@ -545,12 +553,6 @@ static void WINAPI Load(HMODULE hModule) {
 			continue;
 		}
 
-		Sleep(5);
+		Sleep(500);
 	}
 }
-
-/*
-
-
-
-*/
