@@ -437,6 +437,15 @@ static void WINAPI Load(HMODULE hModule) {
 					MemPut < BYTE > (0x555858, 0x90);
 				}
 			}
+			else if (type.compare("nopostfx") == 0)
+			{
+				if (enabled)
+				{
+					DWORD oldProt;
+					VirtualProtect((void*)0x53E227, 1, PAGE_EXECUTE_READWRITE, &oldProt);
+					MemPut<BYTE>(0x53E227, 0xC3); // ret
+				}
+			}
 		}
 	} else {
 		ofstream ofile(path);
@@ -452,6 +461,7 @@ static void WINAPI Load(HMODULE hModule) {
 		ofile << "flashes 0" << endl;
 		ofile << "fixblackroads 1" << endl;
 		ofile << "interiorreflections 1" << endl;
+		ofile << "nopostfx 0" << endl;
 		ofile.close();
 
 		brightness = -1;
@@ -475,6 +485,7 @@ static void WINAPI Load(HMODULE hModule) {
 		readfile << "flashes - set to 0 to disable flashes" << endl;
 		readfile << "fixblackroads - set to 1 to fix black roads on some PC's off in the distance" << endl;
 		readfile << "interiorreflections - set to 0 to disable interior reflections" << endl;
+		readfile << "nopostfx - set to 1 to disable post effects." << endl;
 		readfile.close();
 	}
 
