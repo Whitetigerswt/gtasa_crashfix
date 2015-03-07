@@ -1,1 +1,1 @@
-2.1 https://github.com/Whitetigerswt/gtasa_crashfix/releases/download/v2.2/crashes.asi
+2.4 https://github.com/Whitetigerswt/gtasa_crashfix/blob/master/crashes/Release/crashes.asi?raw=true
