@@ -11,6 +11,7 @@
 #include "fixes.h"
 #include "Addresses.h"
 #include "CrashHandler.h"
+#include "CParseCommandLine.h"
 #include <iostream>
 #include <fstream>
 #include <Wininet.h>
@@ -119,8 +120,11 @@ static void WINAPI Load(HMODULE hModule) {
 	DWORD oldProt;
 	VirtualProtect((LPVOID)0x401000, 0x4A3000, PAGE_EXECUTE_READWRITE, &oldProt);
 
-	//patcher_install(&patch_DisableLoadingScreen);
-	if(GetModuleHandle("samp.dll") != NULL) {
+	std::map < std::string, std::string > cmdline;
+	cmdline = CParseCommandLine::parseCmdLine(GetCommandLineA());
+
+	if(cmdline["Host"].length() > 0) 
+	{
 		quickLoadPatches();
 	}
 
