@@ -22,6 +22,6 @@ Requirements
 Credits
 -------
 
-most credits go to the MTA team, and the original code can be found at: https://code.google.com/p/mtasa-blue/
+most credits go to the MTA team, and the original code can be found at: https://github.com/multitheftauto/mtasa-blue
 
 Credits: MTA:SA, Deji, 0x688, Ryosuke839
