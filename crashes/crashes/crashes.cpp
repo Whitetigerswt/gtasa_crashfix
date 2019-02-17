@@ -37,8 +37,8 @@ void CPlayerPed__ProcessControl_Abort() { }
 
 void _cdecl CrashAverted ( DWORD id )
 {
-    CLog log = CLog("crashes.log");
-	log.Write("You were saved from crash #%d!", id);
+ //   CLog log = CLog("crashes.log");
+	//log.Write("You were saved from crash #%d!", id);
 }
 
 #define CRASH_AVERTED(id) \

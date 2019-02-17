@@ -69,16 +69,7 @@
     <ClInclude Include="PatternScan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CrashRpt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CrashRptProbe.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CLog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CrashHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CParseCommandLine.h">
@@ -111,9 +102,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CLog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CrashHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PatternScan.cpp">

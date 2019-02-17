@@ -1,0 +1,12 @@
+﻿  quickload.cpp
+  dllmain.cpp
+d:\github\gtasa_crashfix\crashes\crashes\CVector.h(67): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+d:\github\gtasa_crashfix\crashes\crashes\CVector.h(92): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\github\gtasa_crashfix\crashes\crashes\CVector.h(93): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  Generating code
+  6 of 920 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
+    1 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  crashes.vcxproj -> D:\GitHub\gtasa_crashfix\crashes\Release\crashes.asi
+  crashes.vcxproj -> D:\GitHub\gtasa_crashfix\crashes\Release\crashes.pdb (Full PDB)

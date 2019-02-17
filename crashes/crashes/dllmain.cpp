@@ -10,7 +10,6 @@
 #include "main.h"
 #include "fixes.h"
 #include "Addresses.h"
-#include "CrashHandler.h"
 #include "CParseCommandLine.h"
 #include <iostream>
 #include <fstream>
@@ -48,7 +47,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		{
 			CGammaRamp GammaRamp;
 			GammaRamp.SetBrightness(NULL, 128);
-			crUninstall();
 			break;
 		}
 	}
@@ -84,7 +82,7 @@ void checkForUpdate() {
 
 	float version;
 	char* url = new char[200];
-	sscanf_s (szLatestVersion, "%f %s", &version, url);
+	sscanf_s(szLatestVersion, "%f %s", &version, url, 200);
 
 	if(version > VERSION) {
 		DeleteUrlCacheEntry(url);
@@ -109,14 +107,17 @@ void checkForUpdate() {
 			rename(currentDir, "crashes.asi");
 
 			LoadLibrary("crashes.asi");
+			delete[] url;
+
 			FreeLibraryAndExitThread(g_hMod, 0);
 		}
 	}
+	delete[] url;
 }
 
 
-static void WINAPI Load(HMODULE hModule) {
-
+static void WINAPI Load(HMODULE hModule) 
+{
 	DWORD oldProt;
 	VirtualProtect((LPVOID)0x401000, 0x4A3000, PAGE_EXECUTE_READWRITE, &oldProt);
 
@@ -133,8 +134,6 @@ static void WINAPI Load(HMODULE hModule) {
 	while(*(int*)0xB6F5F0 == 0) { 
 		Sleep(100);
 	}
-
-	CrashHandler();
 
 	if(GetModuleHandle("samp.dll") != NULL) {
 
@@ -449,6 +448,11 @@ static void WINAPI Load(HMODULE hModule) {
 					MemPut < BYTE > (0x555858, 0x90);
 				}
 			}
+			else if (type.compare("fpslimit") == 0)
+			{
+				if(enabled)
+					disableFPSLock();
+			}
 			else if (type.compare("nopostfx") == 0)
 			{
 				if (enabled)
@@ -473,6 +477,7 @@ static void WINAPI Load(HMODULE hModule) {
 		ofile << "flashes 0" << endl;
 		ofile << "fixblackroads 1" << endl;
 		ofile << "interiorreflections 1" << endl;
+		ofile << "fpslimit 0" << endl;
 		ofile << "nopostfx 0" << endl;
 		ofile.close();
 
@@ -497,6 +502,7 @@ static void WINAPI Load(HMODULE hModule) {
 		readfile << "flashes - set to 0 to disable flashes" << endl;
 		readfile << "fixblackroads - set to 1 to fix black roads on some PC's off in the distance" << endl;
 		readfile << "interiorreflections - set to 0 to disable interior reflections" << endl;
+		readfile << "fpslimit - set to 1 to enable the removal of SA-MP's internal FPS limiting code. By default, you can't get over 100 fps. set to 0 to disable this. (NOTE: This may cause issues with newer SA-MP releases)." << endl;
 		readfile << "nopostfx - set to 1 to disable post effects." << endl;
 		readfile.close();
 	}

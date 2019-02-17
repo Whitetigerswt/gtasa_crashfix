@@ -140,7 +140,7 @@ void _declspec(naked) HOOK_FixClimbBug () {
 
 #define HOOKPOS_FixClimbBug2                            0x04B5AE5
 #define HOOKSIZE_FixClimbBug2                           6
-#define FixClimbBug_alt									0x04B5CDC
+DWORD FixClimbBug_alt = 0x04B5CDC;
 #define RETURN_FixClimbBug2								0x04B5AEB
 DWORD	dwRETURN_FixClimbBug2							= 0x04B5AEB;
 DWORD	dwfixClimbBugAlt								= 0x04B5CDC;
@@ -154,10 +154,13 @@ void _declspec(naked) HOOK_FixClimbBug2 () {
 	}*/
 
 	_asm {
-		jnz FixClimbBug_alt
+		jnz FixClimbBugAlt
 		mov [dwTmp],edi
 		mov [dwTmpEcx],ecx
 		mov [dwTmpEax],eax
+			
+		FixClimbBugAlt:
+			jmp FixClimbBug_alt
 	}
 
 	if(dwTmp != 1) {
