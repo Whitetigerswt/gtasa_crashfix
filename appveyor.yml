@@ -1,0 +1,7 @@
+version: 1.0.{build}
+image: Visual Studio 2015
+configuration: Release
+platform: Win32
+build:
+  project: crashes/crashes.sln
+  verbosity: minimal
