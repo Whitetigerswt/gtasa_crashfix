@@ -466,7 +466,7 @@ static void WINAPI Load(HMODULE hModule)
 	} else {
 		ofstream ofile(path);
 		ofile << "brightness -1" << endl;
-		ofile << "mousefix 1" << endl;
+		ofile << "mousefix 0" << endl;
 		ofile << "shadows 0" << endl;
 		ofile << "heathaze 0" << endl;
 		ofile << "sound 1" << endl;
@@ -511,58 +511,56 @@ static void WINAPI Load(HMODULE hModule)
 	
 	bool laststate = false;
 	int previousbrightness = -1;
-	while(true) {
+	if(brightness != -1 || mousefix == 1)
+	{
+		while (true) {
 
-		TCHAR wintitle[50];
-		ZeroMemory(wintitle, sizeof(wintitle));
+			TCHAR wintitle[50];
+			ZeroMemory(wintitle, sizeof(wintitle));
 
-		HWND hwnd = *(HWND*)0xC97C1C;
-		HWND ActiveWin = GetForegroundWindow();  // Gets a handle to the window..
+			HWND hwnd = *(HWND*)0xC97C1C;
+			HWND ActiveWin = GetForegroundWindow();  // Gets a handle to the window..
 
- 		char WindowText[50];
-		GetWindowText(ActiveWin, WindowText, sizeof(WindowText));
-		GetWindowText(hwnd, wintitle, sizeof(wintitle));
-		if((!strcmp(wintitle, WindowText) || ((!strcmp(wintitle, "GTA: San Andreas") && !strcmp(WindowText, "GTA:SA:MP")) || !strcmp(WindowText, "GTA: San Andreas") && !strcmp(wintitle, "GTA:SA:MP"))) && strlen(wintitle) > 0 && strlen(WindowText) > 0) {
-			int newbright = 64;
+			char WindowText[50];
+			GetWindowText(ActiveWin, WindowText, sizeof(WindowText));
+			GetWindowText(hwnd, wintitle, sizeof(wintitle));
+			if ((!strcmp(wintitle, WindowText) || ((!strcmp(wintitle, "GTA: San Andreas") && !strcmp(WindowText, "GTA:SA:MP")) || !strcmp(WindowText, "GTA: San Andreas") && !strcmp(wintitle, "GTA:SA:MP"))) && strlen(wintitle) > 0 && strlen(WindowText) > 0) {
 
-			if(brightness == -1) {
-				int currentbrightness = *(int*)0x0BA6784;
-				int bars = (currentbrightness-9) / 24;
+				if (brightness != previousbrightness && brightness != -1)
+				{
+					GammaRamp.SetBrightness(NULL, brightness);
+				}
 
-				newbright += 12 * bars;
-			} else {
-				newbright = brightness;
+				previousbrightness = brightness;
+
+				if (mousefix && laststate)
+				{
+
+					// F6
+					keybd_event(0x75, 0, NULL, 0);
+					keybd_event(0x75, 0, KEYEVENTF_KEYUP, 0);
+					Sleep(50);
+
+					// ESC
+					keybd_event(0x1B, 0, NULL, 0);
+					keybd_event(0x1B, 0, KEYEVENTF_KEYUP, 0);
+
+					// we should think of a better solution then opening chat to hide mouse.
+					laststate = false;
+				}
+
+			}
+			else {
+				if (previousbrightness != 128 && brightness != -1) GammaRamp.SetBrightness(NULL, 128);
+				previousbrightness = 128;
+				if (mousefix && !laststate) {
+
+					laststate = true;
+				}
+				continue;
 			}
 
-			if(newbright != previousbrightness) GammaRamp.SetBrightness(NULL, newbright);
-
-			previousbrightness = newbright;
-
-			if(mousefix && laststate) {
-
-				// F6
-				keybd_event(0x75, 0, NULL, 0);
-				keybd_event(0x75, 0, KEYEVENTF_KEYUP, 0);
-				Sleep(50);
-
-				// ESC
-				keybd_event(0x1B, 0, NULL, 0);
-				keybd_event(0x1B, 0, KEYEVENTF_KEYUP, 0);
-
-				// we should think of a better solution then opening chat to hide mouse.
-				laststate = false;
-			}
-
-		} else {
-			if(previousbrightness != 128) GammaRamp.SetBrightness(NULL, 128);
-			previousbrightness = 128;
-			if(mousefix && !laststate) {
-
-				laststate = true;
-			}
-			continue;
+			Sleep(500);
 		}
-
-		Sleep(500);
 	}
 }
