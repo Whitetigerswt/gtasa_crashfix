@@ -18,9 +18,9 @@ void CLog::Write(std::string logline){
 	m_stream << logline << std::endl;
 }
 
-/*void CLog::Write(std::string logline, int notime){
-m_stream << logline;
-}*/
+//void CLog::Write(std::string logline, int notime){
+//	m_stream << logline;
+//}
 
 void CLog::Write(const char* format, ...)
 {

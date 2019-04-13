@@ -147,11 +147,11 @@ DWORD	dwfixClimbBugAlt								= 0x04B5CDC;
 
 void _declspec(naked) HOOK_FixClimbBug2 () { 
 
-	/*asm {
-		jnz FixClimbBug_alt
-		cmp edi,1
-		jne RETURN_FixClimbBug2
-	}*/
+	//asm {
+	//	jnz FixClimbBug_alt
+	//	cmp edi,1
+	//	jne RETURN_FixClimbBug2
+	//}
 
 	_asm {
 		jnz FixClimbBugAlt
@@ -287,9 +287,9 @@ void InitHooks_Fixes ()
 	HookInstall ( HOOKPOS_GetFxQuality, (DWORD)HOOK_GetFxQuality, 5 );
     HookInstall ( HOOKPOS_StoreShadowForVehicle, (DWORD)HOOK_StoreShadowForVehicle, 9 );
 
-	EZHookInstall ( FixClimbBug );
-	EZHookInstall ( FixClimbBug2 );
-	HookInstall( SECOND_HOOKPOS_FixClimbBug, (DWORD)HOOK_FixClimbBug, 5);
+	//EZHookInstall ( FixClimbBug );
+	//EZHookInstall ( FixClimbBug2 );
+	//HookInstall( SECOND_HOOKPOS_FixClimbBug, (DWORD)HOOK_FixClimbBug, 5);
 	EZHookInstall(Fx_AddBulletImpact);
 	EZHookInstall(FixMouseStuck);
 	//HookInstall( 0x67A110, (DWORD)HOOK_ClimbConstructor, 7);

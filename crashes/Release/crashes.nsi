@@ -16,7 +16,7 @@ SetCompressor /SOLID lzma
 ;General
 
   ;Name and file
-  !define VERSION "v2.4"
+  !define VERSION "v2.51"
   !define AUTHOR "Whitetiger"
   Name "GTA:SA Crash Fix-${VERSION}"
   OutFile "crashes-${VERSION}.exe"
