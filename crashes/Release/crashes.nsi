@@ -16,14 +16,14 @@ SetCompressor /SOLID lzma
 ;General
 
   ;Name and file
-  !define VERSION "v2.51"
+  !define VERSION "v2.52"
   !define AUTHOR "Whitetiger"
   Name "GTA:SA Crash Fix-${VERSION}"
   OutFile "crashes-${VERSION}.exe"
 
   ;Default installation folder
   InstallDir "$PROGRAMFILES\Rockstar Games\GTA San Andreas"
-  
+
   ;Get installation folder from registry if available
   InstallDirRegKey HKCU "Software\crashesasi" ""
 
@@ -44,13 +44,13 @@ SetCompressor /SOLID lzma
   !define MUI_PAGE_CUSTOMFUNCTION_LEAVE MyFuncDir
   !insertmacro MUI_PAGE_DIRECTORY
   !insertmacro MUI_PAGE_INSTFILES
-  
+
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
-  
+
 ;--------------------------------
 ;Languages
- 
+
   !insertmacro MUI_LANGUAGE "English"
 
 Function MyFuncDir
@@ -89,19 +89,15 @@ Section "Main Components" SecMain
 	SectionIn 1 2 RO
 
   SetOutPath "$INSTDIR"
-  
+
   File "crashes.asi"
-  File "crashrpt_lang.ini"
-  File "CrashRpt1402.dll"
-  File "dbghelp.dll"
-  File "CrashSender1402.exe"
-  
+
   ;Store installation folder
   WriteRegStr HKCU "Software\crashesasi" "" $INSTDIR
-  
+
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\uninstall_crashes.exe"
-  
+
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninstall_crashes.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\uninstall_crashes.exe"
@@ -114,7 +110,7 @@ SectionEnd
 Section "ASI Loader" SecASILoader
 
   SetOutPath "$INSTDIR"
-  
+
   ;ADD YOUR OWN FILES HERE...
   File "vorbisHooked.dll"
   File "vorbisFile.dll"
@@ -134,7 +130,7 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${SecMain} $(DESC_SecMain)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecASILoader} $(DESC_SecASILoader)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
-  
+
 
 ;--------------------------------
 ;Uninstaller Section
@@ -148,7 +144,7 @@ Section "Uninstall"
   Delete "$INSTDIR\CrashSender1402.exe"
 
   Delete "$INSTDIR\uninstall_crashes.exe"
-  
+
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
 
   DeleteRegKey /ifempty HKCU "Software\crashesasi"
@@ -163,20 +159,20 @@ Function Slice
  Push $R3
  Push $R4
  Push $R5
- 
+
  StrLen $R3 $R1
  StrCpy $R4 -1
  StrCpy $R5 0
- 
+
  Loop:
- 
+
   IntOp $R4 $R4 + 1
   StrCpy $R2 $R0 $R3 $R4
   StrCmp $R2 "" Done
   StrCmp $R2 $R1 0 Loop
- 
+
    StrCpy $R5 1
- 
+
    StrCmp $R4 0 0 +3
     StrCpy $R1 ""
     Goto +2
@@ -189,10 +185,10 @@ Function Slice
     Goto +2
    StrCpy $R2 $R0 "" -$R4
    StrCpy $R0 $R1$R2
- 
+
  Done:
  StrCpy $R1 $R5
- 
+
  Pop $R5
  Pop $R4
  Pop $R3

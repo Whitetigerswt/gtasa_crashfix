@@ -1,5 +1,5 @@
 #pragma once
 
-#define VERSION 2.51f
+#define VERSION 2.52f
 
 void DownloadUpdate(char* url);
