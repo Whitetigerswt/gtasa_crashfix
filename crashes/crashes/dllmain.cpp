@@ -465,6 +465,12 @@ static void WINAPI Load(HMODULE hModule)
 		}
 	} else {
 		ofstream ofile(path);
+
+		if (!ofile.is_open())
+		{
+			MessageBoxA(NULL, "Error: Failed to create crashes.cfg configuration file. Please verify the file permissions in the GTA:SA folder and run gta_sa.exe (or samp.exe) as an administrator.", "CRASHES.ASI Error", MB_OK);
+		}
+
 		ofile << "brightness -1" << endl;
 		ofile << "mousefix 0" << endl;
 		ofile << "shadows 0" << endl;
