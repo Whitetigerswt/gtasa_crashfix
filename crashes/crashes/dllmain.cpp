@@ -14,6 +14,7 @@
 #include <iostream>
 #include <fstream>
 #include <Wininet.h>
+#include "crashes.h"
 
 using namespace std;
 
@@ -134,6 +135,42 @@ static void WINAPI Load(HMODULE hModule)
 	while(*(int*)0xB6F5F0 == 0) { 
 		Sleep(100);
 	}
+
+	// Make it so we can launch more than 1 gta_sa.exe (reversed addresses from http://ugbase.eu/index.php?threads/gta-sa-multiprocess-updated.4100/)
+	MemCpy((void*)0x406946, "\x00\x00\x00\x00", 4);
+
+	// Allow windowed mode. Alt+enter to activate (reversed addresses from http://ugbase.eu/index.php?threads/gta-sa-multiprocess-updated.4100/)
+	MemCpy((void*)0x074872D, "\x90\x90\x90\x90\x90\x90\x90\x90\x90", 9);
+
+	// Hack to make SA-MP think the game is always unpaused
+	MemCpy((void*)0x53E9B3, "\x75\x44\x90\x90\x90\x90", 6); // jne 0x53E9F9
+
+	// Hack to make the game run in the background when paused
+	MemPut < BYTE >(0x561AF6, 0x00); // mov byte ptr [0xB7CB49],01 -> mov byte ptr [0xB7CB49],00
+
+
+	// NOTE: all the alt tab hooks here are not working. not sure why.
+
+	//if (getGameVersion() == 1)
+	//{
+	//	// Hack to make the game think we never alt tabbed when we have.
+	//	MemCpy((void*)0x748054, "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 10);
+	//}
+	//else if (getGameVersion() == 2)
+	//{
+	//	// Hack to make the game think we never alt tabbed when we have.
+	//	MemCpy((void*)0x7480A4, "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 10);
+	//}
+
+	//// Hack so SA-MP continues to send packets while alt tabbed.
+	//MemCpy((void*)0x53EA88, "\x90\x90\x90\x90\x90\x90", 6); // nop 
+
+	//// If you alt tab when you're in an interior, some weird graphics bugs happen
+	//// So fix that:
+	//MemCpy((void*)0x53EA12, "\x90\x90\x90\x90\x90", 5);
+
+	// Hack to make the game not set cursor position while alt tabbed
+	// CMem::ApplyJmp(FUNC_SetCursorPos, (DWORD)SetCursorPosHook, 8);
 
 	if(GetModuleHandle("samp.dll") != NULL) {
 
@@ -398,6 +435,8 @@ static void WINAPI Load(HMODULE hModule)
 
 	InitHooks_CrashFixHacks ( );
 	InitHooks_Fixes( );
+
+
 
 	CGammaRamp GammaRamp;
 

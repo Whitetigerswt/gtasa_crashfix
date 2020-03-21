@@ -1264,6 +1264,8 @@ void InitHooks_CrashFixHacks()
 	EZHookInstall(CrashFix_Misc28);
 	EZHookInstall(CrashFix_Misc29);
 	EZHookInstall(CClumpModelInfo_GetFrameFromId);
+
+
 }
 
 DWORD SampPointerCheck1_Addr = 0;
@@ -1287,6 +1289,30 @@ void _declspec(naked) HOOK_SampPointerCheck1()
 	}
 }
 
+//#define CROUCH_KEY								*(BYTE*)0xB7347C
+//#define FUNC_KeyPress							(DWORD)0x541C98
+//
+//DWORD KeyPressCall = 0x53EF80;
+//static DWORD KeyPressJmpBack = 0x541C9D;
+//void _declspec(naked) KeyPress()
+//{
+//	__asm
+//	{
+//		call[KeyPressCall]
+//		pushad
+//	}
+//
+//	CROUCH_KEY = 0;
+//
+//	__asm
+//	{
+//		popad
+//		
+//		lea ecx, [ebx + 78h]
+//		jmp[KeyPressJmpBack]
+//	}
+//}
+
 void InitHooks_SampCrashes()
 {
 	SampPointerCheck1_Addr = FindPattern("\x74\x12\x8B\x50\x10\x8B\x02", "xxxxxxx");
@@ -1297,4 +1323,8 @@ void InitHooks_SampCrashes()
 		VirtualProtect((void*)SampPointerCheck1_Addr, 5, PAGE_EXECUTE_READWRITE, &oldProt);
 		HookInstall(SampPointerCheck1_Addr, (DWORD)HOOK_SampPointerCheck1, 5);
 	}
+
+	//DWORD oldProt;
+	//VirtualProtect((void*)FUNC_KeyPress, 5, PAGE_EXECUTE_READWRITE, &oldProt);
+	//HookInstall(FUNC_KeyPress, (DWORD)KeyPress, 8);
 }
