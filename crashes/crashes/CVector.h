@@ -64,7 +64,7 @@ public:
 
     float Length ( void ) const
     {
-        return sqrt ( (fX*fX) + (fY*fY) + (fZ*fZ) );
+        return (float)sqrt ( (fX*fX) + (fY*fY) + (fZ*fZ) );
     }
 
     float LengthSquared ( void ) const
@@ -89,8 +89,8 @@ public:
     CVector ToRotation ( void ) const
     {
         CVector vecRotation;
-        vecRotation.fZ = atan2 ( fY, fX );
-        CVector vecTemp ( sqrt ( fX * fX + fY * fY ), fZ, 0 );
+        vecRotation.fZ = (float)atan2 ( fY, fX );
+        CVector vecTemp ( (float) sqrt ( fX * fX + fY * fY ), fZ, 0 );
         vecTemp.Normalize ();
         (float)vecRotation.fY = (float)(atan2 ( vecTemp.fX, vecTemp.fY ) - M_PI / 2.0);
         return vecRotation;
