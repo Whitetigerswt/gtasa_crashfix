@@ -118,17 +118,30 @@ Section "ASI Loader" SecASILoader
 
 SectionEnd
 
+Section /o "Configuration Files" SecConfig
+
+  SetOutPath "$INSTDIR"
+
+  ;ADD YOUR OWN FILES HERE...
+  File "crashes.cfg"
+  File "crashes.cfg_readme.txt"
+
+
+SectionEnd
+
 ;--------------------------------
 ;Descriptions
 
   ;Language strings
   LangString DESC_SecMain ${LANG_ENGLISH} "All the required files."
   LangString DESC_SecASILoader ${LANG_ENGLISH} "ASI Loader."
+  LangString DESC_SecConfig ${LANG_ENGLISH} "Configuration Files: crashes.cfg and README instructions with how to configure."
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
     !insertmacro MUI_DESCRIPTION_TEXT ${SecMain} $(DESC_SecMain)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecASILoader} $(DESC_SecASILoader)
+	!insertmacro MUI_DESCRIPTION_TEXT ${SecConfig} $(DESC_SecConfig)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 
